@@ -56,7 +56,6 @@ def edit_info():
         current_user.about_me = form.about_me.data
         current_user.height = form.height.data if form.height.data != 0 else None
         current_user.weight = form.weight.data if form.weight.data != 0 else None
-        print(current_user)
         db.session.add(current_user)
         db.session.commit()
         return redirect(url_for('main.user', uuid=current_user.uuid))
@@ -124,11 +123,14 @@ def people():
 def change_avatar():
     form = ChangeAvatarForm()
     if form.validate_on_submit():
-        f = form.newavatar.data
-        filename = os.path.join(current_app.config.get('BASEDIR'), 'app/static/img/avatar', secure_filename(str(current_user.uuid) + '.png')) 
-        f.save(filename)
-        current_user.avatar = url_for('static', filename='img/avatar/' + secure_filename(str(current_user.uuid) + '.png'))
-        db.session.add(current_user)
-        db.session.commit()
+        if form.submit.data:
+            f = form.newavatar.data
+            filename = os.path.join(current_app.config.get('BASEDIR'), 'app/static/img/avatar', secure_filename(str(current_user.uuid) + '.png')) 
+            f.save(filename)
+            current_user.avatar = url_for('static', filename='img/avatar/' + secure_filename(str(current_user.uuid) + '.png'))
+            db.session.add(current_user)
+            db.session.commit()
+
         return redirect(url_for('main.user_homepage'))
+    
     return render_template('change_avatar.html', form=form)

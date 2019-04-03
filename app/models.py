@@ -124,7 +124,6 @@ class User(db.Model, UserMixin):
                     
 
     def ping(self):
-        print('ping')
         self.active = datetime.utcnow()
         db.session.add(self)
         db.session.commit()

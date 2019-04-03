@@ -7,27 +7,31 @@
 {% block page_header %}
 <div class="container">
     <div class="row">
-        <div class="col-4 col-sm-3"><img class="img-fluid" src="{{ user.avatar }}" width="400" height="400" ></div>
+        <div class="col-4 col-sm-3">
+            {% if user == current_user %}<a href="{{ url_for('main.change_avatar') }}"> {% endif %}
+                <img class="img-fluid" src="{{ user.avatar }}" width="400" height="400">
+            {% if user == current_user %}</a> {% endif %}
+        </div>
         <div class="col-8 col-sm-9">
             <h2>{{ user.name }}</h2>
             <h5>{{ user.email }}</h5>
             <h5>{{ user.gender.name }}</h5>
             <h5>{{ moment(user.birthday).format('LL') }}</h5>
             <h5>{{ user.province.name }}</h5>
-            
+
         </div>
-        
+
     </div>
     <br>
-    <div class="row" >
-            <div class="text-center col-12">
+    <div class="row">
+        <div class="text-center col-12">
             <p>{{ user.about_me }}</p>
-            </div>
+        </div>
     </div>
     {% if user == current_user %}
-        <a href="{{ url_for('main.edit_info') }}" class="btn btn-link" role="button">Chỉnh sửa</a>
+    <a href="{{ url_for('main.edit_info') }}" class="btn btn-link" role="button">Chỉnh sửa</a>
 
-        {% endif %}
+    {% endif %}
 
     <br>
 

@@ -4,7 +4,6 @@ from flask import current_app, render_template
 from threading import Thread
 
 def send_email(subject, to, template, **kwargs):
-    print('to: ', to)
     app = current_app._get_current_object()
     msg = Message(subject, sender='Admin <%s>'%app.config.get('MAIL_USERNAME'), recipients=[to])
     msg.body = render_template(template + '.txt', **kwargs)
