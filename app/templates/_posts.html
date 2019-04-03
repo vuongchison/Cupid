@@ -2,8 +2,9 @@
 <div class="card shadow p-3 mb-3  bg-white rounded">
     <div class="card-body bg-white">
         <h6 class="card-title">
-            <img src="{{ url_for('images.crop', filename=post.author.avatar, width=32, height=32, quality=90) }}" height="32px"> 
-            <a href="{{ url_for('main.user', uuid=post.author.uuid) }}" class="pl-1">{{ post.author.name }}</a>
+            <a href="{{ url_for('main.user', uuid=post.author.uuid) }}"><img class="rounded-circle"
+                    src="{{ url_for('images.crop', filename=post.author.avatar, width=48, height=48, quality=90) }}"></a>
+            <a href="{{ url_for('main.user', uuid=post.author.uuid) }}" class="pl-2">{{ post.author.name }}</a>
             <span class="text-muted">
                 <small>
                     {{ moment(post.created).fromNow() }}

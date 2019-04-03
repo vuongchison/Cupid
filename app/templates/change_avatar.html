@@ -3,13 +3,26 @@
 
 {% block title %}Avatar{% endblock %}
 
-{% block page_content %}
+{% block page_header %}
 <div class="container">
-    <div class="page-header">
-        <h1>Đổi avatar</h1>
-    </div>
-    <div class="container">
-        {{ wtf.quick_form(form) }}
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <img class="shadow-lg img-fluid"
+                src="{{ url_for('images.crop', filename=current_user.avatar, width=400, height=400, quality=90) }}"
+                class="rounded" alt="avatar">
+        </div>
+
+        <div class="col-md-6">
+            <div class="page-header">
+                <h1>Đổi avatar</h1>
+            </div>
+            <div class="container">
+                {{ wtf.quick_form(form) }}
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block page_content %}
 {% endblock %}

@@ -4,9 +4,9 @@
 {% block title %}Bài đăng{% endblock %}
 
 {% block page_header %}
-<div class="container">
-        <img src="{{ post.author.avatar }}" height="32px" class="float-left">
-        <h6><a href="{{ url_for('main.user', uuid=post.author.uuid) }}" class="pl-3">{{ post.author.name }}</a>
+<div class="container px-4">
+        <img class="float-left rounded-circle " src="{{ url_for('images.crop', filename=post.author.avatar, width=48, height=48, quality=90) }}">
+        <h6><a href="{{ url_for('main.user', uuid=post.author.uuid) }}" class="ml-3">{{ post.author.name }}</a>
             <span class="text-muted"> <small>{{ moment(post.created).fromNow() }}</small></span>
             {% if post.author_id == current_user.id %}
             <div class="dropdown dropleft" style="float:right;">
@@ -20,7 +20,7 @@
             {% endif %}
         </h6>
     
-        <p class="pt-3" align="justify">
+        <p class="mt-5" align="justify">
             {{ post.body }}
         </p>
     </div>
