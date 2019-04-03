@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Tìm kiếm bạn mới{% endblock %}
+
+{% block page_header %}
+
+{% endblock %}
+
+{% block page_content %}
+<div class="container">
+    <div class="card-columns">
+        {% for user in people %}
+        <div class="card shadow">
+            <div class="card-body">
+                
+                <h6 class="card-title">
+                    <a href="{{ url_for('main.user', uuid=user.uuid) }}">{{user.name }}</a>
+                </h6>
+
+                <p class="card-text" style="cursor: pointer;"
+                    onclick="window.location='{{ url_for('main.user', uuid=user.uuid) }}'">
+                    <p class="text-secondary">{{ user.gender.name }}</p>
+                    {# {{ user.about_me }} #}
+                </p>
+            </div>
+            <img class="card-img-bottom" src="{{ user.avatar }}" alt="{{ user.name }}">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

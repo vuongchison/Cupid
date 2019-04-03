@@ -1,0 +1,2 @@
+Vui lòng xác minh email của bạn: 
+url_for('auth.change_email', token=token, _external=True) }}

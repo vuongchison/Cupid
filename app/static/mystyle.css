@@ -1,0 +1,46 @@
+header {
+    margin: 50px 0 20px;
+    text-align: center;
+    padding: 0 10px
+}
+
+header h1 {
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-size: 28px;
+    margin-top: 30px
+}
+
+.content {
+    max-width: 600px;
+    margin: 0 auto
+}
+
+.content h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 40px 0 30px
+}
+
+.content figure {
+    display: block;
+    text-align: center;
+    margin: 20px 0
+}
+
+.content figcaption {
+    font-size: 12px;
+    padding-top: 10px
+}
+
+.content div.dropdown {
+    margin: 20px auto;
+    width: 130px
+}
+
+.content blockquote p {
+    font-size: 14px;
+    padding: 15px 20px;
+    border-left: 3px solid #edecf2;
+    background-color: #f9f9fb
+}

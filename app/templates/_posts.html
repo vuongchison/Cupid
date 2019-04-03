@@ -1,0 +1,34 @@
+{% for post in posts %}
+<div class="card shadow p-3 mb-3  bg-white rounded">
+    <div class="card-body bg-white">
+        <h6 class="card-title">
+            <img src="{{ post.author.avatar }}" height="32px"> 
+            <a href="{{ url_for('main.user', uuid=post.author.uuid) }}" class="pl-1">{{ post.author.name }}</a>
+            <span class="text-muted">
+                <small>
+                    {{ moment(post.created).fromNow() }}
+                </small>
+            </span>
+
+            {% if post.author_id == current_user.id %}
+            <div class="dropdown dropleft" style="float:right;">
+                <button type="button" class="btn btn-link btn-sm dropdown-toggle" data-toggle="dropdown">
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{{ url_for('main.edit_post', uuid=post.uuid) }}">Chỉnh sửa</a>
+                    <a class="dropdown-item"
+                        href="{{ url_for('main.delete_post', uuid=post.uuid, next=request.path) }}">Xóa</a>
+                </div>
+            </div>
+            {% endif %}
+
+        </h6>
+
+        <p class="card-text" style="cursor: pointer;"
+            onclick="window.location='{{ url_for('main.post', uuid=post.uuid) }}'" align="justify">
+            {{ post.body }}
+        </p>
+    </div>
+</div>
+
+{% endfor %}

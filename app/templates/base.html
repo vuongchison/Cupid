@@ -1,0 +1,95 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Cupid{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/css/bootstrap.min.css">
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='mystyle.css') }}">
+{% endblock %}
+
+{% block navbar %}
+
+<nav class="navbar navbar-expand-lg py-0 py-sm-0 py-md-1 py-lg-1 py-xl-1  navbar-light bg-light ">
+    <a class="navbar-brand" href="{{ url_for('main.index') }}">Cupid</a>
+    {% if current_user.is_authenticated %}
+    <a href="#"><img src="../static/message.png" class="navbar-brand" alt="Message" style="width:20px;"></a>
+    <a href="#"><img src="../static/notification.png" class="navbar-brand" alt="Notification" style="width:20px;"></a>
+    <a class="navbar-brand" href="{{ url_for('main.people') }}"><img src="../static/people.png" class="navbar-brand"
+            alt="People" style="width:25px;"></a>
+    {% endif %}
+
+    <button class="navbar-toggler " type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <!-- <form class="form-inline mr-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form> -->
+        <ul class="navbar-nav ml-auto">
+            {% if current_user.is_authenticated %}
+            <li class="nav-item active">
+                <a class="nav-link text-primary" href="{{ url_for('main.user', uuid=current_user.uuid) }}">Trang cá
+                    nhân</a>
+            </li>
+            <li class="nav-item active"><a class="nav-link text-primary"
+                    href="{{ url_for('main.setting', uuid=current_user.uuid) }}">Cài đặt</a></li>
+            <li class="nav-item active"><a class="nav-link text-primary" href="{{ url_for('auth.logout') }}">Đăng
+                    xuất</a></li>
+            {% else %}
+            <li class="nav-item active">
+                <a class="nav-link text-primary" href="{{ url_for('auth.login') }}">Đăng nhập</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link text-primary" href="{{ url_for('auth.register') }}">Đăng ký</a>
+            </li>
+            {% endif %}
+        </ul>
+
+    </div>
+</nav>
+
+{% endblock %}
+
+{% block content %}
+<div class="container ">
+    {% for message in get_flashed_messages() %}
+    <br>
+    <div class="alert alert-success alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+
+
+<div class="pb-2 mt-4 mb-2 border-bottom">
+    {% block page_header %}{% endblock %}
+</div>
+
+
+{% block page_content %}{% endblock %}
+
+{% block pagination %}
+{% if pagination %}
+{% import "_macros.html" as macros %}
+{{ macros.pagination_widget(pagination, request.endpoint ) }}
+{% endif %}
+{% endblock %}
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
+{{ moment.include_jquery() }}
+{{ moment.lang("vi")}}
+
+{% endblock %}
+

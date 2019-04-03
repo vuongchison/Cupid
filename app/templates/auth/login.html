@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Đăng Nhập{% endblock %}
+
+{% block page_header %}
+<div class="container">
+    <h1>Đăng Nhập</h1>
+</div>
+{% endblock %}
+
+{% block page_content %}
+<div class="container">
+    {{ wtf.quick_form(form) }}
+    <br>
+    <div class="row">
+        <div class="col-xs-5 col-sm-3 col-md-2">
+            <a href="{{ url_for('auth.register') }}">Đăng ký</a>
+        </div>
+        <div class="col-xs-7 col-sm-9 col-md-10">
+            <a href="{{ url_for('auth.reset_password_request') }}">Đặt lại mật khẩu</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
