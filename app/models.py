@@ -26,7 +26,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(128), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     confirmed_email = db.Column(db.Boolean, default=False)
-    avatar = db.Column(db.String(256))
+    avatar = db.Column(db.String(256), default='default.png')
 
     birthday = db.Column(db.DateTime)
     gender_id = db.Column(db.Integer, db.ForeignKey('genders.id'))
@@ -42,7 +42,6 @@ class User(db.Model, UserMixin):
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        self.avatar = gravatar(self.email)
 
     @property
     def password(self):

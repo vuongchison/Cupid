@@ -24,7 +24,7 @@
                     {# {{ user.about_me }} #}
                 </p>
             </div>
-            <img class="card-img-bottom" src="{{ user.avatar }}" alt="{{ user.name }}">
+            <img class="card-img-bottom" src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}" alt="{{ user.name }}">
         </div>
         {% endfor %}
     </div>

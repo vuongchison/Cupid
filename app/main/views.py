@@ -125,9 +125,9 @@ def change_avatar():
     if form.validate_on_submit():
         if form.submit.data:
             f = form.newavatar.data
-            filename = os.path.join(current_app.config.get('BASEDIR'), 'app/static/img/avatar', secure_filename(str(current_user.uuid) + '.png')) 
-            f.save(filename)
-            current_user.avatar = url_for('static', filename='img/avatar/' + secure_filename(str(current_user.uuid) + '.png'))
+            filename = secure_filename(str(current_user.uuid) + '.png')
+            f.save(os.path.join(current_app.config.get('BASEDIR'), 'app/static/img/avatar', filename))
+            current_user.avatar = filename
             db.session.add(current_user)
             db.session.commit()
 

@@ -5,12 +5,16 @@ basedir = path.abspath(path.dirname(__file__))
 class Config:
     BASEDIR = basedir
     SECRET_KEY = 'secret key vu0ngch1s0n'
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
     MAIL_USERNAME = 'chison1997@gmail.com'
     MAIL_PASSWORD = 'Vu0ng ch1 s0n'
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
+    
+    IMAGES_PATH = ['static/img/avatar']
     
     @staticmethod
     def init_app(app):
@@ -55,8 +59,8 @@ class DevelopmentConfig(Config):
                 u = User(email='changtrajbjan@gmail.com', name='Chàng Trai Bí Ẩn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=175, weight=65)
                 db.session.add(u)
                 db.session.commit()
-            User.generate_fake(100)
-            Post.generate_fake(5000)
+            User.generate_fake(20)
+            Post.generate_fake(500)
 
 class TestingConfig(Config):
     TESTING = True
