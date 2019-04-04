@@ -17,6 +17,21 @@ class Gender(db.Model):
 
     users = db.relationship('User', backref='gender', lazy='dynamic')
 
+class Follow(db.Model):
+    __tablrname__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Match(db.Model):
+    __tablrname__ = 'matches'
+    user1_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    user2_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
@@ -40,8 +55,15 @@ class User(db.Model, UserMixin):
     created = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.DateTime, default=datetime.utcnow)
 
+    followed = db.relationship('Follow', foreign_keys=[Follow.follower_id], backref=db.backref('follower', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
+
+    followers = db.relationship('Follow', foreign_keys=[Follow.followed_id], backref=db.backref('followed', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
+    
+    match = db.relationship('Match', foreign_keys=[Match.user1_id], backref=db.backref('match', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
+
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
+        self.follow(self)
 
     @property
     def password(self):
@@ -121,11 +143,43 @@ class User(db.Model, UserMixin):
         
         db.session.commit()
                     
-
     def ping(self):
         self.active = datetime.utcnow()
         db.session.add(self)
         db.session.commit()
+
+    def follow(self, user):
+        if not self.is_following(user):
+            f = Follow(follower=self, followed=user)
+            db.session.add(f)
+        if self.is_followed_by(user):
+            m1 = Match(user1_id=self.id, user2_id=user.id)
+            m2 = Match(user1_id=user.id, user2_id=self.id)
+            db.session.add_all([m1, m2])
+
+        db.session.commit()
+
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            db.session.delete(f)
+            if self.is_followed_by(user):
+                m = Match.query.filter( (Match.user1_id == self.id) | (Match.user1_id ==  user.id) ).delete()
+
+            db.session.commit()
+    
+    def is_following(self, user):
+        return self.followed.filter_by(followed_id=user.id).first() is not None
+    
+    def is_followed_by(self, user):
+        return self.followers.filter_by(follower_id=user.id).first() is not None
+
+    @property
+    def followed_posts(self):
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id) 
+
+    def is_match_with(self, user):
+        return self.match.filter_by(user2_id=user.id).first() is not None
 
     def __repr__(self):
         return '<User %d %s %s %s %s %s %s %s %s>' % (self.id, self.name, self.email, self.birthday, self.gender, self.province, self.phone_number, self.height, self.weight)

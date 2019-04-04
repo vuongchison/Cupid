@@ -4,6 +4,7 @@ from app import create_app, db
 import time
 from config import config
 
+@unittest.skip
 class PostModelTestCase(unittest.TestCase):
     def setUp(self):
         self.app = create_app('testing')

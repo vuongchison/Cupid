@@ -46,6 +46,13 @@ def init_data():
     """Init data to db."""
     config[config_name].init_db(app, db)
 
+@manager.command
+def runserver():
+    # context = ('ssl.crt', 'ssl.key')
+    # app.run(ssl_context=context)
+    app.run(threaded=True)
+
+
 manager.add_command('shell', Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 

@@ -19,7 +19,7 @@ def index():
             return redirect(url_for('main.index'))
 
         page = request.args.get('page', 1, type=int)
-        pagination =  Post.query.filter(Post.author != current_user).order_by(Post.created.desc()).paginate(page, per_page=20, error_out=False)
+        pagination = current_user.followed_posts.filter(Post.author != current_user).order_by(Post.created.desc()).paginate(page, per_page=20, error_out=False)
         posts = pagination.items
         return render_template('index.html', form=form, posts=posts, pagination=pagination)
     
@@ -134,3 +134,23 @@ def change_avatar():
         return redirect(url_for('main.user_homepage'))
     
     return render_template('change_avatar.html', form=form)
+
+@main.route('/follow/<uuid>')
+@login_required
+def follow(uuid):
+    u = User.query.filter_by(uuid=uuid).first_or_404()
+    if u == current_user:
+        abort(405)
+    current_user.follow(u)
+    if current_user.is_match_with(u):
+        flash('Chúc mừng, 2 bạn đã match với nhau')
+    return redirect(url_for('main.user', uuid=uuid))
+
+@main.route('/unfollow/<uuid>')
+@login_required
+def unfollow(uuid):
+    u = User.query.filter_by(uuid=uuid).first_or_404()
+    if u == current_user:
+        abort(405)
+    current_user.unfollow(u)
+    return redirect(url_for('main.user', uuid=uuid))

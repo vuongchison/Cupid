@@ -14,7 +14,7 @@ class Config:
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     
-    IMAGES_PATH = ['static/img/avatar']
+    IMAGES_PATH = ['static/img/avatar', 'static']
     
     @staticmethod
     def init_app(app):

@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% import "_macros.html" as macros %}
 
+{% block head %}
+{{ super() }}
+{% endblock %}
+
 {% block title %}Cupid{% endblock %}
 
 
@@ -8,8 +12,9 @@
 <div class="container">
     <div class="row">
         <div class="col-4 col-sm-3">
-            {% if user == current_user %}<a href="{{ url_for('main.change_avatar') }}"> {% endif %}
-                <img class="img-fluid" src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}">
+            {% if user == current_user %}<a href="{{ url_for('main.change_avatar') }}" > {% endif %}
+                <img class="img-fluid"
+                    src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}" {% if user == current_user %} data-toggle="tooltip" data-placement="bottom" title="Đổi avatar" {% endif %}>
                 {% if user == current_user %}</a> {% endif %}
         </div>
         <div class="col-8 col-sm-9">
@@ -18,7 +23,22 @@
             <h5>{{ user.gender.name }}</h5>
             <h5>{{ moment(user.birthday).format('LL') }}</h5>
             <h5>{{ user.province.name }}</h5>
+            {% if user != current_user %}
+            {% if not current_user.is_following(user) %}
+            <a href="{{ url_for('main.follow', uuid=user.uuid) }}" >
+                <img src="{{ url_for('images.crop', filename='heart_default.png', width=48, height=48, quality=90) }}" data-toggle="tooltip" data-placement="bottom" title="follow" alt="follow">
+            </a>
+            {% elif not current_user.is_followed_by(user) %}
+            <a href="{{ url_for('main.unfollow', uuid=user.uuid) }}" >
+                <img src="{{ url_for('images.crop', filename='heart_blue.png', width=56, height=56, quality=90) }}" data-toggle="tooltip" data-placement="bottom" title="unfollow" alt="unfollow" >
+            </a>
+            {% else %}
+            <a href="{{ url_for('main.unfollow', uuid=user.uuid) }}" >
+                <img src="{{ url_for('images.crop', filename='heart_red.png', width=64, height=64, quality=90) }}" data-toggle="tooltip" data-placement="bottom" title="unmatch" alt="unmatch" >
+            </a>
+            {% endif %}
 
+            {% endif %}
         </div>
 
     </div>
@@ -51,5 +71,10 @@
 
 
 {{ macros.pagination_widget(pagination, request.endpoint, uuid=user.uuid) }}
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
 
 {% endblock %}
