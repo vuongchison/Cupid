@@ -1,19 +1,2 @@
-{% extends 'base.html' %}
+{% extends '_oldbase2.html' %}
 
-{% block page_content %}
-<div class="container">
-        <h3>Tooltip Example</h3>
-        <a href="#" data-toggle="tooltip" title="Hooray!">Hover over me</a>
-      </div>
-{% endblock %} 
-
-
-
-{% block scripts %}
-{{ super() }}
-<script>
-$(document).ready(function(){
-  $('[data-toggle="tooltip"]').tooltip();   
-});
-</script>
-{% endblock %}

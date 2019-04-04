@@ -12,16 +12,11 @@
 <!-- Bootstrap -->
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
-
-<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> -->
 
 
 <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
@@ -34,23 +29,22 @@
 {% block navbar %}
 
 <nav class="navbar fixed-top shadow navbar-expand-lg py-0 py-md-1 navbar-light bg-light">
-    <a class="navbar-brand" href="{{ url_for('main.index') }}">Cupid</a>
+    <a class="navbar-brand mr-lg-5" href="{{ url_for('main.index') }}">Cupid</a>
     {% if current_user.is_authenticated %}
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand mr-lg-5" href="#">
         <img src="../static/message.png" alt="Message" style="width:20px;">
         <small><span class="badge badge-pill badge-danger">6</span></small>
     </a>
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand mr-lg-5" href="#">
         <img src="../static/notification.png" alt="Notification" style="width:20px;">
         <small><span class="badge badge-pill badge-primary">7</span></small>
     </a>
-    <a class="navbar-brand" href="{{ url_for('main.people') }}">
+    <a class="navbar-brand mr-lg-5" href="{{ url_for('main.people') }}">
         <img src="../static/people.png" alt="People" style="width:25px;">
     </a>
     {% endif %}
 
-    <button class="navbar-toggler " type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler " type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
         <span class="navbar-toggler-icon"></span>
     </button>
 
