@@ -3,3 +3,4 @@
 migrations/*
 *.sqlite
 app/static/img*
+test.py

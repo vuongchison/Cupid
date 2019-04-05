@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Bài đăng{% endblock %}
+{% block title %}{{ post.author.name }}{% endblock %}
 
 {% block page_header %}
 <div class="container px-4">

@@ -13,9 +13,14 @@
         {% for user in people %}
         <div class="card shadow">
             <div class="card-body">
-                
+
                 <h6 class="card-title">
                     <a href="{{ url_for('main.user', uuid=user.uuid) }}">{{user.name }}</a>
+                    {% if user.is_active() %}
+                    <span class="align-middle"
+                        style="background: rgb(66, 183, 42); border-radius: 50%; width: 10px; height: 10px;  display: inline-block;"
+                        aria-label="Active Now"></span>
+                    {% endif %}
                 </h6>
 
                 <p class="card-text" style="cursor: pointer;"
@@ -24,7 +29,9 @@
                     {# {{ user.about_me }} #}
                 </p>
             </div>
-            <img class="card-img-bottom" src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}" alt="{{ user.name }}">
+            <img class="card-img-bottom"
+                src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}"
+                alt="{{ user.name }}">
         </div>
         {% endfor %}
     </div>

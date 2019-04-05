@@ -5,14 +5,12 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from config import config
 from flask_login import LoginManager
-from flask_gravatar import Gravatar
 from flask_images import Images, resized_img_src
 
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
-gravatar = Gravatar()
 images = Images()
 
 login_manager = LoginManager()
@@ -29,7 +27,6 @@ def create_app(config_name):
     moment.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
-    gravatar.init_app(app)
     images.init_app(app)
 
     from .main import main as main_blueprint

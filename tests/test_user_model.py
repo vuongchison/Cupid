@@ -38,7 +38,6 @@ class UserModelTestCase(unittest.TestCase):
         u2 = User(password='cat')
         self.assertTrue(u.password_hash != u2.password_hash)
 
-    @unittest.skip
     def test_confirm_email(self):
         u = User(email='example@gmail.com')
         db.session.add(u)
@@ -76,7 +75,6 @@ class UserModelTestCase(unittest.TestCase):
         db.session.commit()
         self.assertNotEqual(u.uuid, u2.uuid)
     
-    @unittest.skip
     def test_reset_password(self):
         u1 = User(email= 'u1@gmail.com', password='Nulo123456')
         u2 = User(email= 'u2@gmail.com', password='Nulo123456')
@@ -108,7 +106,6 @@ class UserModelTestCase(unittest.TestCase):
         self.assertFalse(User.reset_password(token2, newpassword='Newpass123456'))
         self.assertTrue(u2.verify_password('Nulo123456'))
 
-    @unittest.skip
     def test_change_email(self):
         u1 = User(email= 'u1@gmail.com')
         u2 = User(email= 'u2@gmail.com')
@@ -146,6 +143,9 @@ class UserModelTestCase(unittest.TestCase):
         db.session.add(u2)
         db.session.commit()
 
+        #test u1 is follwing u1
+        self.assertTrue(u1.is_following(u1))
+
         #test u2 is not following u1
         self.assertFalse(u2.is_following(u1))
         self.assertFalse(u1.is_followed_by(u2))
@@ -177,3 +177,10 @@ class UserModelTestCase(unittest.TestCase):
         u1.unfollow(u2)
         self.assertFalse(u1.is_match_with(u2))
         self.assertFalse(u2.is_match_with(u1))
+
+    def test_active(self):
+        u1 = User(email= 'u1@gmail.com')
+        db.session.add(u1)
+        db.session.commit()
+
+        self.assertTrue(u1.is_active())

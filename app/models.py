@@ -1,4 +1,4 @@
-from . import db, gravatar
+from . import db
 from . import login_manager
 from flask import current_app
 from flask_login import UserMixin
@@ -63,7 +63,9 @@ class User(db.Model, UserMixin):
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        self.follow(self)
+        
+        f = Follow(follower=self, followed=self)
+        db.session.add(f)
 
     @property
     def password(self):
@@ -147,6 +149,11 @@ class User(db.Model, UserMixin):
         self.active = datetime.utcnow()
         db.session.add(self)
         db.session.commit()
+
+    def is_active(self):
+        """Người dùng có đang online hay không. Thời gian không gửi request quá 5 phút: không online"""
+        now = datetime.utcnow()
+        return (now - self.active).total_seconds()/60 < 5
 
     def follow(self, user):
         if not self.is_following(user):
