@@ -1,7 +1,2 @@
-# from app.models import GenderType
-import hashlib
-
-def f(**kwargs):
-    print(kwargs)
-
-f(a=1, b=2)
+stringformat = '%s %s %d'
+print(stringformat % ('vuong chi son', 'dep trai'))

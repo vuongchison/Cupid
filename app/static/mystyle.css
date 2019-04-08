@@ -44,3 +44,15 @@ header h1 {
     border-left: 3px solid #edecf2;
     background-color: #f9f9fb
 }
+
+.noti {
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 500px; 
+}
+
+.post{
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 800px; 
+}

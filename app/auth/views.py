@@ -2,7 +2,7 @@ from flask import render_template, url_for, request, redirect, flash
 from . import auth
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, ResetPasswordForm, ResetPasswordRequestForm, ChangeEmailForm
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User
+from app.models import User, Notification
 from app import db
 from app.email import send_email
 
@@ -66,6 +66,14 @@ def resend_confirmation():
 @auth.before_app_request
 def before_request():
     if current_user.is_authenticated:
+        noti_id = request.args.get('noti', 0, type=int)
+        if noti_id != 0:
+            n = Notification.query.get(noti_id)
+            if n:
+                n.read = True
+                db.session.add(n)
+                db.session.commit()
+                
         current_user.ping()
         if not current_user.confirmed_email and request.endpoint and request.blueprint != 'auth' and request.endpoint != 'static':
             return redirect(url_for('auth.unconfirmed'))

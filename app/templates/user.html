@@ -11,15 +11,15 @@
 {% block page_header %}
 <div class="container">
     <div class="row">
-        <div class="col-4 col-sm-3">
+        <div class="col-3">
             {% if user == current_user %}<a href="{{ url_for('main.change_avatar') }}"> {% endif %}
                 <img class="img-fluid"
-                    src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}"
+                    src="{{ url_for('images.crop', filename=user.avatar, width=256, height=256, quality=90) }}"
                     {% if user == current_user %} data-toggle="tooltip" data-placement="bottom" title="Đổi avatar"
                     {% endif %}>
                 {% if user == current_user %}</a> {% endif %}
         </div>
-        <div class="col-8 col-sm-9">
+        <div class="col-9">
             <h2>{{ user.name }}
                 {% if user.is_active() %}
                 <span class="align-middle"

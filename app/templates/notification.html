@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Thông báo{% endblock %}
+
+{% block page_header %}
+
+{% endblock %}
+
+{% block page_content %}
+<div class="container">
+    {% for noti in notifications %}
+    <div class="container p-3 mb-3 border {% if noti.read %}border-white bg-white shadow-sm{% else %}border-light bg-light shadow-lg{% endif %} rounded noti">
+        <div class="row">
+            <div class="col-2">
+                {% if noti.image %}
+                <img class="rounded-circle  img-fluid"
+                    src="{{ url_for('images.crop', filename=noti.image, width=64, height=64, quality=90) }}">
+                {% endif %}
+            </div>
+            <div class="col-10">
+                <span class="card-text" style="cursor: pointer;"
+                    onclick="window.location='{{ noti.link }}?noti={{ noti.id }}'">
+                    {{ noti.body | safe}}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="card shadow p-3 mb-3  {% if noti.read %}bg-white{% else %}bg-light{% endif %} rounded">
+    <div class="card-body {% if noti.read %}bg-white{% else %}bg-light{% endif %}">
+        {% if noti.image %}
+        <img class="rounded-circle"
+            src="{{ url_for('images.crop', filename=noti.image, width=48, height=48, quality=90) }}">
+        {% endif %}
+        <span class="card-text ml-5" style="cursor: pointer;"
+            onclick="window.location='{{ noti.link }}?noti={{ noti.id }}'" align="justify">
+            {{ noti.body | safe}}
+        </span>
+    </div>
+</div> -->
+
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from . import db
 from . import login_manager
-from flask import current_app
+from flask import current_app, url_for
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -50,7 +50,9 @@ class User(db.Model, UserMixin):
     about_me = db.Column(db.String(256))
     height = db.Column(db.Integer)
     weight = db.Column(db.Integer)
+    
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    notifications = db.relationship('Notification', backref='user', lazy='dynamic')
 
     created = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.DateTime, default=datetime.utcnow)
@@ -163,6 +165,8 @@ class User(db.Model, UserMixin):
             m1 = Match(user1_id=self.id, user2_id=user.id)
             m2 = Match(user1_id=user.id, user2_id=self.id)
             db.session.add_all([m1, m2])
+            self.noti_match(user)
+            user.noti_match(self)
 
         db.session.commit()
 
@@ -187,6 +191,11 @@ class User(db.Model, UserMixin):
 
     def is_match_with(self, user):
         return self.match.filter_by(user2_id=user.id).first() is not None
+
+    def noti_match(self, match_with):
+        n = Notification(user_id=self.id, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body='Chúc mừng, bạn và <b>%s</b> đã match với nhau, bạn có thể nhắn tin cho %s ấy.' % (match_with.name, 'anh' if match_with.gender.name == 'Nam' else 'cô'))
+        db.session.add(n)
+        db.session.commit()
 
     def __repr__(self):
         return '<User %d %s %s %s %s %s %s %s %s>' % (self.id, self.name, self.email, self.birthday, self.gender, self.province, self.phone_number, self.height, self.weight)
@@ -237,4 +246,27 @@ class Province(db.Model):
     def __repr__(self):
         return '<Province %d %s>' % (self.id, self.name)
     
+class NotificationType(db.Model):
+    __tablename__ = 'notificationtypes'
 
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), index=True, unique=True)
+
+    note = db.Column(db.Text)
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    type_id = db.Column(db.Integer, db.ForeignKey('notificationtypes.id'))
+
+    image = db.Column(db.Text)
+    body = db.Column(db.Text)
+    link = db.Column(db.Text)
+    
+    read = db.Column(db.Boolean, default=False)
+
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    

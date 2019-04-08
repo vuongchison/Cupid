@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app
 from . import main
-from app.models import User, Post
+from app.models import User, Post, Notification
 from flask_login import login_required, current_user
 from .forms import InformationForm, PostForm, EditPostForm, ChangeAvatarForm
 from app import db
@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import os
 
 @main.route('/', methods=['GET', 'POST'])
+@main.route('/index', methods=['GET', 'POST'])
 def index():
     if current_user.is_authenticated:
         form = PostForm()
@@ -154,3 +155,11 @@ def unfollow(uuid):
         abort(405)
     current_user.unfollow(u)
     return redirect(url_for('main.user', uuid=uuid))
+
+@main.route('/notification')
+@login_required
+def notification():
+    page = request.args.get('page', 1, type=int)
+    pagination = current_user.notifications.order_by(Notification.timestamp.desc()).paginate(page, per_page=20, error_out=False)
+    notifications = pagination.items
+    return render_template('notification.html', notifications=notifications, pagination=pagination)
