@@ -1,4 +1,5 @@
 {% macro pagination_widget(pagination, endpoint) %}
+{% if pagination.pages > 1 %}
 <ul class="pagination justify-content-center">
     {% if pagination.has_prev %}
     <li class="page-item">
@@ -24,4 +25,6 @@
     </li>
     {% endif %}
 </ul>
+
+{% endif %}
 {% endmacro %}

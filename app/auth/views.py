@@ -70,10 +70,8 @@ def before_request():
         if noti_id != 0:
             n = Notification.query.get(noti_id)
             if n:
-                n.read = True
-                db.session.add(n)
-                db.session.commit()
-                
+                n.mark_read()
+
         current_user.ping()
         if not current_user.confirmed_email and request.endpoint and request.blueprint != 'auth' and request.endpoint != 'static':
             return redirect(url_for('auth.unconfirmed'))

@@ -37,7 +37,9 @@
     </a>
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.notification') }}">
         <img src="../static/notification.png" alt="Notification" style="width:20px;">
-        <small><span class="badge badge-pill badge-primary">7</span></small>
+        {% if current_user.new_noti > 0 %}
+        <small><span class="badge badge-pill badge-primary">{% if current_user.new_noti < 100 %}{{ current_user.new_noti }}{% else %}99+{% endif %}</span></small>
+        {% endif %}
     </a>
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.people') }}">
         <img src="../static/people.png" alt="People" style="width:25px;">

@@ -52,8 +52,10 @@ class User(db.Model, UserMixin):
     weight = db.Column(db.Integer)
     
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    
     notifications = db.relationship('Notification', backref='user', lazy='dynamic')
-
+    new_noti = db.Column(db.Integer, default=0)
+    
     created = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -193,7 +195,7 @@ class User(db.Model, UserMixin):
         return self.match.filter_by(user2_id=user.id).first() is not None
 
     def noti_match(self, match_with):
-        n = Notification(user_id=self.id, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body='Chúc mừng, bạn và <b>%s</b> đã match với nhau, bạn có thể nhắn tin cho %s ấy.' % (match_with.name, 'anh' if match_with.gender.name == 'Nam' else 'cô'))
+        n = Notification(user_id=self.id, type_id=3, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body='Chúc mừng, bạn và <b>%s</b> đã match với nhau, bạn có thể nhắn tin cho %s ấy.' % (match_with.name, 'anh' if match_with.gender.name == 'Nam' else 'cô'))
         db.session.add(n)
         db.session.commit()
 
@@ -268,5 +270,17 @@ class Notification(db.Model):
     read = db.Column(db.Boolean, default=False)
 
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super(Notification, self).__init__(**kwargs)
+        db.session.add(self)
+        db.session.commit()
+        self.user.new_noti += 1
+
+    def mark_read(self):
+        self.read = True
+        self.user.new_noti -= 1
+        db.session.add_all([self, self.user])
+        db.session.commit()
 
     

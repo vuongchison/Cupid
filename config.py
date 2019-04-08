@@ -53,16 +53,20 @@ class DevelopmentConfig(Config):
         from datetime import datetime
         with app.app_context():
             print('Initing dev-db......')
-            u = User.query.filter_by(email='chison1997@gmail.com').first()
-            if u is None:
-                u = User(email='chison1997@gmail.com', name='Vương Chí Sơn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=170, weight=56)
-                db.session.add(u)
+            u1 = User.query.filter_by(email='chison1997@gmail.com').first()
+            if u1 is None:
+                u1 = User(email='chison1997@gmail.com', name='Vương Chí Sơn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=170, weight=56)
+                db.session.add(u1)
                 db.session.commit()
-            u = User.query.filter_by(email='changtrajbjan@gmail.com').first()
-            if u is None:
-                u = User(email='changtrajbjan@gmail.com', name='Chàng Trai Bí Ẩn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=175, weight=65)
-                db.session.add(u)
+            u2 = User.query.filter_by(email='changtrajbjan@gmail.com').first()
+            if u2 is None:
+                u2 = User(email='changtrajbjan@gmail.com', name='Chàng Trai Bí Ẩn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=175, weight=65)
+                db.session.add(u2)
                 db.session.commit()
+            
+            u1.follow(u2)
+            u2.follow(u1)
+
             User.generate_fake(20)
             Post.generate_fake(500)
 
