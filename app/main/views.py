@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app
 from . import main
-from app.models import User, Post, Notification
+from app.models import User, Post, Notification, Message
 from flask_login import login_required, current_user
 from .forms import InformationForm, PostForm, EditPostForm, ChangeAvatarForm
 from app import db
@@ -159,7 +159,32 @@ def unfollow(uuid):
 @main.route('/notification')
 @login_required
 def notification():
+    current_user.new_noti = 0
+    db.session.commit()
     page = request.args.get('page', 1, type=int)
     pagination = current_user.notifications.order_by(Notification.timestamp.desc()).paginate(page, per_page=20, error_out=False)
     notifications = pagination.items
     return render_template('notification.html', notifications=notifications, pagination=pagination)
+
+@main.route('/message')
+@login_required
+def message():
+    current_user.new_message = 0
+    db.session.commit()
+    # page = request.args.get('page', 1, type=int)
+    last_messages =  current_user.last_messages.order_by(Message.timestamp.desc()).all()
+    # print(last_messages[0].message.body)
+    return render_template('message.html', last_messages=last_messages)
+
+    # pagination = current_user.notifications.order_by(Notification.timestamp.desc()).paginate(page, per_page=20, error_out=False)
+    # notifications = pagination.items
+    # return render_template('notification.html', notifications=notifications, pagination=pagination)
+
+@main.route('/message/<uuid>')
+@login_required
+def inbox(uuid):
+    u = User.query.filter_by(uuid=uuid).first_or_404()
+    if not current_user.is_match_with(u):
+        abort(404)
+
+    return render_template('inbox.html', user=u)

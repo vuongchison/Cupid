@@ -4,7 +4,6 @@ from app import create_app, db
 import time
 from config import config
 
-@unittest.skip
 class UserModelTestCase(unittest.TestCase):
     def setUp(self):
         self.app = create_app('testing')
@@ -144,8 +143,6 @@ class UserModelTestCase(unittest.TestCase):
         db.session.add(u2)
         db.session.commit()
 
-        #test u1 is follwing u1
-        self.assertTrue(u1.is_following(u1))
 
         #test u2 is not following u1
         self.assertFalse(u2.is_following(u1))
@@ -161,8 +158,8 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(u2.is_followed_by(u1))
 
     def test_match(self):
-        u1 = User(email= 'u1@gmail.com')
-        u2 = User(email= 'u2@gmail.com')
+        u1 = User(email= 'u1@gmail.com', name='vcs')
+        u2 = User(email= 'u2@gmail.com', name='vcs 2')
         db.session.add(u1)
         db.session.add(u2)
         db.session.commit()

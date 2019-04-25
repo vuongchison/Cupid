@@ -39,14 +39,18 @@
             </a>
             {% elif not current_user.is_followed_by(user) %}
             <a href="{{ url_for('main.unfollow', uuid=user.uuid) }}">
-                <img src="{{ url_for('images.crop', filename='heart_blue.png', width=56, height=56, quality=90) }}"
+                <img src="{{ url_for('images.crop', filename='heart_blue.png', width=48, height=48, quality=90) }}"
                     data-toggle="tooltip" data-placement="bottom" title="unfollow" alt="unfollow">
             </a>
             {% else %}
             <a href="{{ url_for('main.unfollow', uuid=user.uuid) }}">
-                <img src="{{ url_for('images.crop', filename='heart_red.png', width=64, height=64, quality=90) }}"
+                <img src="{{ url_for('images.crop', filename='heart_red.png', width=48, height=48, quality=90) }}"
                     data-toggle="tooltip" data-placement="bottom" title="unmatch" alt="unmatch">
             </a>
+            <a href="{{ url_for('main.inbox', uuid=user.uuid) }}">
+                    <img src="{{ url_for('images.crop', filename='inbox.png', width=48, height=48, quality=90) }}"
+                        data-toggle="tooltip" data-placement="bottom" title="inbox" >
+                </a>
             {% endif %}
 
             {% endif %}

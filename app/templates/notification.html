@@ -10,19 +10,24 @@
 {% block page_content %}
 <div class="container">
     {% for noti in notifications %}
-    <div class="container p-3 mb-3 border {% if noti.read %}border-white bg-white shadow-sm{% else %}border-light bg-light shadow-lg{% endif %} rounded noti">
+    <div class="container p-3 mb-3 border {% if noti.read %}border-white bg-white shadow-sm{% else %}border-light bg-light shadow-lg{% endif %} rounded noti" onclick="window.location='{{ noti.link }}?noti={{ noti.id }}'"  style="cursor: pointer;">
         <div class="row">
-            <div class="col-2">
+            <div class="col-2 text-center">
                 {% if noti.image %}
                 <img class="rounded-circle  img-fluid"
-                    src="{{ url_for('images.crop', filename=noti.image, width=64, height=64, quality=90) }}">
+                    src="{{ url_for('images.crop', filename=noti.image, width=72, height=72, quality=90) }}" alt="centered image">
                 {% endif %}
             </div>
             <div class="col-10">
-                <span class="card-text" style="cursor: pointer;"
-                    onclick="window.location='{{ noti.link }}?noti={{ noti.id }}'">
+                    
+                <div class="card-text">
                     {{ noti.body | safe}}
-                </span>
+                </div>
+                <span class="text-muted">
+                        <small>
+                            {{ moment(noti.timestamp).fromNow() }}
+                        </small>
+                    </span>
             </div>
         </div>
     </div>

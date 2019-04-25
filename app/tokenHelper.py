@@ -3,11 +3,19 @@ from flask import current_app
 from app import mail
 
 
-def gen(data, expiration=43200):
+def gen(data: dict, expiration=43200):
+    """Sinh token từ dữ liệu data với thời hạn expiration.
+    - Trả về xâu token với mã hóa utf-8"""
+
     s = Serializer(current_app.config.get('SECRET_KEY'), expiration)
     return s.dumps(data).decode('utf-8')
 
 def check(token, *args, **kwargs):
+    """Kiểm tra token xem có hợp lệ không. 
+    Token sau khi giải mã phải có các tham số *args, và các cặp tham số - giá trị tương ứng như trong **kwargs.
+    - Trả về dữ liệu sau khi giải mã nếu hợp lệ.
+    - Trả về False nếu không hợp lệ."""
+    
     decoder = Serializer(current_app.config.get('SECRET_KEY'))
 
     try:

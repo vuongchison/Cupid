@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block page_header %}
+<div class="container">
+    <h1>Tin nhắn</h1>
+</div>
+{% endblock %}
+
+{% block page_content %}
+
+<div class="container">
+    {% for lm in last_messages %}
+        {% set m = lm.message %}
+    
+        {% set u = m.sender %}
+        {% if m.sender_id == current_user.id %}
+            {% set u = m.receiver %}
+        {% endif %}
+        <div class="container p-3 mb-3 border {% if m.read %}border-white bg-white shadow-sm{% else %}border-light bg-light shadow-lg{% endif %} rounded last-message " onclick="window.location='{{ url_for('main.inbox', uuid=u.uuid) }}'"  style="cursor: pointer;">
+            <div class="row">
+                <div class="col-2">
+                    
+                    <img class="rounded-circle  img-fluid"
+                        src="{{ url_for('images.crop', filename=u.avatar, width=64, height=64, quality=90) }}">
+                   
+                </div>
+                <div class="col-10 messcrop">
+                    <span class="card-text">
+                        <b><a href='{{ url_for('main.user', uuid=u.uuid) }}'>{{ u.name }}</a></b>
+                        
+                    </span>
+                    <span class="text-muted">
+                            <small>
+                                {{ moment(m.timestamp).fromNow() }}
+                            </small>
+                        </span>
+                    <div class="card-text messcrop">
+                        {% if m.read  or m.sender == current_user%}
+                        {{ m.body | safe}}
+                        {% else %}
+                        <b>{{ m.body | safe}}</b>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% endfor %}
+</div>
+
+{% endblock %}

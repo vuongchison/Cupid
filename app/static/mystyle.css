@@ -48,11 +48,94 @@ header h1 {
 .noti {
     margin-right: auto;
     margin-left: auto;
-    max-width: 500px; 
+    max-width: 600px;
 }
 
-.post{
+.post {
     margin-right: auto;
     margin-left: auto;
-    max-width: 800px; 
+    max-width: 800px;
+}
+
+.last-message {
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 500px;
+}
+
+/* .verticalhorizontal {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+} */
+
+.messcrop {
+    white-space: nowrap;
+    width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+html, body {
+    height: 100%;
+    /* scroll-behavior: smooth; */
+}
+
+
+.inbox-chatbox {
+    /* position: fixed; */
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1030;
+    width: 100%;
+}
+
+.animated {
+    -webkit-transition: height 0.2s;
+    -moz-transition: height 0.2s;
+    transition: height 0.2s;
+}
+
+* {
+    box-sizing: border-box;
+  }
+  
+#inbox-form {
+      display: flex;
+  }
+  
+
+textarea {
+    display: inline-block;
+    width: 90%;
+    resize: none;
+  }
+  
+#btn-send {
+    display: inline-block;
+    width: 10%;
+  }
+
+.inbox-form{
+    max-width: 700px;
+}
+
+.message {
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 500px;
+}
+
+.message-right {
+    
+    border-top-right-radius: 1.2em;
+    border-top-left-radius: 1.2em;
+    border-bottom-left-radius: 1.2em;
+}
+
+.message-left {
+    border-top-right-radius: 1.2em;
+    border-top-left-radius: 1.2em;
+    border-bottom-right-radius: 1.2em;
 }

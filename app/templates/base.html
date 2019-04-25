@@ -31,13 +31,15 @@
 <nav class="navbar fixed-top shadow navbar-expand-lg py-0 py-md-1 navbar-light bg-light">
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.index') }}">Cupid</a>
     {% if current_user.is_authenticated %}
-    <a class="navbar-brand mr-lg-5" href="#">
+    <a class="navbar-brand mr-lg-5" href="{{ url_for('main.message') }}">
         <img src="../static/message.png" alt="Message" style="width:20px;">
-        <small><span class="badge badge-pill badge-danger">6</span></small>
+        {% if current_user.new_message %}
+        <small><span class="badge badge-pill badge-danger">{% if current_user.new_message < 100 %}{{ current_user.new_message }}{% else %}99+{% endif %}</span></small>
+        {% endif %}
     </a>
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.notification') }}">
         <img src="../static/notification.png" alt="Notification" style="width:20px;">
-        {% if current_user.new_noti > 0 %}
+        {% if current_user.new_noti %}
         <small><span class="badge badge-pill badge-primary">{% if current_user.new_noti < 100 %}{{ current_user.new_noti }}{% else %}99+{% endif %}</span></small>
         {% endif %}
     </a>

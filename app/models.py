@@ -8,6 +8,7 @@ from . import tokenHelper
 from uuid import uuid1
 import enum
 from datetime import datetime
+from flask import jsonify
 
 class Gender(db.Model):
     __tablename__ = 'genders'
@@ -31,6 +32,33 @@ class Match(db.Model):
 
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Message(db.Model):
+    __tablename__ = 'messages'
+
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    body = db.Column(db.Text)    
+    read = db.Column(db.Boolean, default=False)
+
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def todict(self):
+        return {'id': self.id, 'from': self.sender.uuid, 'to': self.receiver.uuid, 'body': self.body, 'timestamp': str(self.timestamp)}
+
+
+
+class LastMessage(db.Model):
+    __tablrname__ = 'lastmessages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+
+    user1_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user2_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    message_id = db.Column(db.Integer, db.ForeignKey('messages.id'))
+
+    message = db.relationship('Message')
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -56,6 +84,11 @@ class User(db.Model, UserMixin):
     notifications = db.relationship('Notification', backref='user', lazy='dynamic')
     new_noti = db.Column(db.Integer, default=0)
     
+    message_s = db.relationship('Message', foreign_keys=[Message.sender_id], backref=db.backref('sender', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
+    message_r = db.relationship('Message', foreign_keys=[Message.receiver_id], backref=db.backref('receiver', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
+    new_message = db.Column(db.Integer, default=0)
+
+
     created = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -65,11 +98,11 @@ class User(db.Model, UserMixin):
     
     match = db.relationship('Match', foreign_keys=[Match.user1_id], backref=db.backref('match', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
 
-    def __init__(self, **kwargs):
-        super(User, self).__init__(**kwargs)
+    # def __init__(self, **kwargs):
+    #     super(User, self).__init__(**kwargs)
         
-        f = Follow(follower=self, followed=self)
-        db.session.add(f)
+    #     f = Follow(follower=self, followed=self)
+    #     db.session.add(f)
 
     @property
     def password(self):
@@ -129,6 +162,22 @@ class User(db.Model, UserMixin):
         db.session.commit()
         return True 
 
+    def generate_auth_token(self, expiration=43200):
+        """Sinh token dùng cho xác thực api"""
+        return tokenHelper.gen({'id': self.id}, expiration=expiration)
+
+    @staticmethod
+    def verify_auth_token(token):
+        """Kiểm tra token xem có hợp lệ không.
+            - Nếu hợp lệ, trả về user tương ứng
+            - Nếu không, trả về None"""
+
+        res = tokenHelper.check(token, 'id')
+        if not res:
+            return None
+        return User.query.get(res['id'])
+        
+
     @staticmethod
     def generate_fake(count=10):
         import forgery_py
@@ -167,8 +216,8 @@ class User(db.Model, UserMixin):
             m1 = Match(user1_id=self.id, user2_id=user.id)
             m2 = Match(user1_id=user.id, user2_id=self.id)
             db.session.add_all([m1, m2])
-            self.noti_match(user)
-            user.noti_match(self)
+            self.noti_match(match_with=user)
+            user.noti_match(match_with=self)
 
         db.session.commit()
 
@@ -194,10 +243,44 @@ class User(db.Model, UserMixin):
     def is_match_with(self, user):
         return self.match.filter_by(user2_id=user.id).first() is not None
 
-    def noti_match(self, match_with):
-        n = Notification(user_id=self.id, type_id=3, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body='Chúc mừng, bạn và <b>%s</b> đã match với nhau, bạn có thể nhắn tin cho %s ấy.' % (match_with.name, 'anh' if match_with.gender.name == 'Nam' else 'cô'))
+    def noti(self, type_id, image=None, link=None, body=None):
+        n = Notification(user_id=self.id, type_id=type_id, image=image, link=link, body=body)
+        self.new_noti += 1
         db.session.add(n)
         db.session.commit()
+
+    def noti_match(self, match_with):
+        body = 'Chúc mừng, bạn và <b>%s</b> đã match với nhau, bạn có thể nhắn tin cho %s ấy.' % (match_with.name or 'người ấy', 'bạn' if match_with.gender is None else 'anh' if match_with.gender.name == 'Nam' else 'cô')
+        self.noti(type_id=3, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body=body)
+        
+
+    def message(self, receiver: 'User', body)->'Message':
+        """Gửi tin nhắn. Trả về đối tượng Message."""
+        m = Message(sender_id=self.id, receiver_id=receiver.id, body=body)
+        db.session.add(m)
+        receiver.new_message += 1
+        
+        lm1 = LastMessage.query.filter( LastMessage.user1_id == self.id, LastMessage.user2_id == receiver.id ).first()
+        if lm1 is None:
+            lm3 = LastMessage(user1_id=self.id, user2_id=receiver.id, message=m)
+            lm2 = LastMessage(user2_id=self.id, user1_id=receiver.id, message=m)
+            db.session.add_all([lm3, lm2])
+        else:
+            lm1.message = m
+            lm2 = LastMessage.query.filter(  LastMessage.user2_id == self.id, LastMessage.user1_id == receiver.id ).first()
+            lm2.message = m
+        
+        db.session.commit()
+        return m
+
+    @property
+    def last_messages(self):
+        """Các tin nhắn cuối cùng với mọi người. Kết quả tả về dưới dạng 1 câuu truy vấn."""
+        return LastMessage.query.filter_by(user1_id=self.id).join(Message, Message.id == LastMessage.message_id)
+
+    def get_latest_messages(self, user):
+        """Trả về câu truy vấn lấy các tin nhắn mới nhất với user."""
+        return Message.query.filter( (Message.sender_id == self.id) | (Message.receiver_id == self.id) ).order_by(Message.timestamp.desc())
 
     def __repr__(self):
         return '<User %d %s %s %s %s %s %s %s %s>' % (self.id, self.name, self.email, self.birthday, self.gender, self.province, self.phone_number, self.height, self.weight)
@@ -271,16 +354,17 @@ class Notification(db.Model):
 
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __init__(self, **kwargs):
-        super(Notification, self).__init__(**kwargs)
-        db.session.add(self)
-        db.session.commit()
-        self.user.new_noti += 1
+    # def __init__(self, **kwargs):
+    #     super(Notification, self).__init__(**kwargs)
+    #     db.session.add(self)
+    #     db.session.commit()
+    #     self.user.new_noti += 1
 
     def mark_read(self):
         self.read = True
-        self.user.new_noti -= 1
-        db.session.add_all([self, self.user])
         db.session.commit()
 
     
+
+
+

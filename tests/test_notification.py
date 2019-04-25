@@ -27,9 +27,14 @@ class NotificationModelTestCase(unittest.TestCase):
         db.session.add(u)
         db.session.commit()
 
-        n = Notification(user=u, type_id=1, body='test body noti')
-        db.session.add(n)
-        db.session.commit()
+        self.assertEqual(u.new_noti, 0)
+
+        u.noti(type_id=1, body='test body noti')
+        
+        # n = Notification(user=u, type_id=1, body='test body noti')
+        # db.session.add(n)
+        # db.session.commit()
 
         self.assertIsNotNone(u.notifications.all())
-        self.assertEqual(u.notifications[0], n)
+        self.assertEqual(u.notifications[0], Notification.query.all()[0])
+        self.assertEqual(u.new_noti, 1)

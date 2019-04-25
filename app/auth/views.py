@@ -69,7 +69,7 @@ def before_request():
         noti_id = request.args.get('noti', 0, type=int)
         if noti_id != 0:
             n = Notification.query.get(noti_id)
-            if n:
+            if n and n.user == current_user:
                 n.mark_read()
 
         current_user.ping()
