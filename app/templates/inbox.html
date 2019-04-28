@@ -103,7 +103,7 @@
         for (i in list_messages) {
             m = list_messages[i];
 
-            title = moment(m.timestamp).calendar()
+            title = moment.utc(m.timestamp).local().calendar()
             m.body = m.body.split('\n').join('<br>')
             if (m.from == current_user_uuid) {
                 mess_float = 'right';

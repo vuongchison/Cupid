@@ -121,4 +121,59 @@
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
+
+
+<script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/alertify.min.js"></script>
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/alertify.min.css"/>
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/themes/bootstrap.min.css"/>
+
+<script>
+        var timestamp = new Date(Date.now()).toISOString(); 
+        console.log(timestamp);
+        function get_news_notification(count, callback) {
+            $.ajax(
+                {
+                    url: '/api/v1.0/notification/get_news',
+                    type: 'post',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) { callback(data); },
+                    data: JSON.stringify({ timestamp: timestamp })
+                });
+        }
+
+        var timeout_notification_check = 5000;
+        function check_new_notification() {
+        setTimeout(function () {
+            console.log('check_new_notification');
+            get_news_notification(null, function (data) {
+                timestamp = new Date(Date.now()).toISOString()
+                notifications = data['notifications'];
+                var n = notifications.length
+                if (n != 0) {
+                    console.log(notifications)
+                    for (var i in notifications)
+                    {
+                        n = '<p style="cursor: pointer;" onclick="window.location=\'' + notifications[i].link + '\'">' + notifications[i].body + '</p>'
+                        //console.log(n);
+                        alertify.notify(n, 'success', 5);
+                    }
+                    timeout_notification_check = 1000; 
+                }else{
+                    if (timeout_notification_check <= 10000)
+                    timeout_notification_check += Math.random() * (1000)
+                    
+                }
+                
+                
+            });
+
+            check_new_notification();
+
+        }, timeout_notification_check) 
+    }
+
+    check_new_notification()
+
+</script>
 {% endblock %}

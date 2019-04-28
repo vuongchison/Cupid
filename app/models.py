@@ -45,7 +45,7 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     def todict(self):
-        return {'id': self.id, 'from': self.sender.uuid, 'to': self.receiver.uuid, 'body': self.body, 'timestamp': str(self.timestamp)}
+        return {'id': self.id, 'from': self.sender.uuid, 'to': self.receiver.uuid, 'body': self.body, 'timestamp': self.timestamp.isoformat()}
 
 
 
@@ -345,7 +345,7 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     type_id = db.Column(db.Integer, db.ForeignKey('notificationtypes.id'))
-
+    
     image = db.Column(db.Text)
     body = db.Column(db.Text)
     link = db.Column(db.Text)

@@ -12,7 +12,7 @@ from flask_request_validator import (
     validate_params
 )
 from html import escape
-import re
+
 
 
 @api.route('/message/')
@@ -89,7 +89,7 @@ def send(uuid, body):
     print(body)
     m = current_user.message(u, body)
 
-    return jsonify({'id': m.id, 'timestamp': str(m.timestamp)})
+    return jsonify({'id': m.id, 'timestamp': m.timestamp.isoformat()})
 
 
     
