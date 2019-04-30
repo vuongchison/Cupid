@@ -23,6 +23,11 @@
         <p class="mt-5" align="justify">
             {{ post.body }}
         </p>
+
+        {% if post.images.all() %}
+        <img src="{{ url_for('images', filename=post.images[0].uuid + '.png', height=1000, quality=90) }}" class="mx-auto d-block img-fluid">
+        {% endif %}
+
     </div>
 {% endblock %}
 

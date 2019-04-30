@@ -27,10 +27,16 @@
 
         </h6>
 
-        <p class="card-text" style="cursor: pointer;"
-            onclick="window.location='{{ url_for('main.post', uuid=post.uuid) }}'" align="justify">
-            {{ post.body }}
-        </p>
+        <div style="cursor: pointer;" onclick="window.location='{{ url_for('main.post', uuid=post.uuid) }}'">
+            <p class="card-text" align="justify">
+                {{ post.body }}
+            </p>
+
+            {% if post.images.all() %}
+            <img src="{{ url_for('images.crop', filename=post.images[0].uuid + '.png', width=1000, height=1000, quality=90) }}"
+                class="mx-auto d-block img-fluid">
+            {% endif %}
+        </div>
     </div>
 </div>
 

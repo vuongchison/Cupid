@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app
 from . import main
-from app.models import User, Post, Notification, Message
+from app.models import User, Post, Notification, Message, Image
 from flask_login import login_required, current_user
 from .forms import InformationForm, PostForm, EditPostForm, ChangeAvatarForm
 from app import db
@@ -12,10 +12,19 @@ import os
 def index():
     if current_user.is_authenticated:
         form = PostForm()
+        #Đăng post
         if form.validate_on_submit():
             p = Post(body=form.body.data, author_id = current_user.id)
             db.session.add(p)
             db.session.commit()
+            if form.image.data:
+                i = Image(post_id=p.id)
+                db.session.add(i)
+                db.session.commit()
+                f = form.image.data
+                filename = secure_filename(str(i.uuid) + '.png')
+                f.save(os.path.join(current_app.config.get('BASEDIR'), 'app/static/img/post', filename))
+
             flash('Đăng thành công.')
             return redirect(url_for('main.index'))
 
@@ -103,6 +112,7 @@ def delete_post(uuid):
     p = Post.query.filter_by(uuid=uuid).first_or_404()
     if p.author_id != current_user.id:
         abort(403)
+    p.delete_images()
     db.session.delete(p)
     db.session.commit()
     next = request.args.get('next')

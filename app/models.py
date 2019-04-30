@@ -9,6 +9,7 @@ from uuid import uuid1
 import enum
 from datetime import datetime
 from flask import jsonify
+from os import remove
 
 class Gender(db.Model):
     __tablename__ = 'genders'
@@ -319,7 +320,9 @@ class Post(db.Model):
     
     body = db.Column(db.Text)
     created = db.Column(db.DateTime, default=datetime.utcnow)
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+
+    images = db.relationship('Image', backref='post', lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=10):
@@ -340,6 +343,11 @@ class Post(db.Model):
         
         db.session.commit()
 
+    def delete_images(self):
+        for i in self.images:
+            remove('app/static/img/post/' + i.uuid + '.png')
+            db.session.delete(i)
+        db.session.commit()
 
 class Province(db.Model):
     __tablename__ = 'provinces'
@@ -397,7 +405,13 @@ class Notification(db.Model):
     def mark_read(self):
         self.read = True
         db.session.commit()
- 
+
+class Image(db.Model):
+    __tablename__ = 'images'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(128), unique=True, index=True, default=lambda : uuid1().hex)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), index=True)
 
 
 

@@ -23,7 +23,8 @@ class InformationForm(FlaskForm):
         self.weight.choices = [(0, "--Không hiển thị--")] + [(v, v) for v in range(100, 29, -1)]
         
 class PostForm(FlaskForm):
-    body = TextAreaField('Bài đăng mới')
+    body = TextAreaField('Bài đăng mới', validators=[DataRequired()])
+    image = FileField('Chọn ảnh')
     submit = SubmitField('Đăng')
 
 class EditPostForm(FlaskForm):
