@@ -113,6 +113,7 @@ def delete_post(uuid):
     if p.author_id != current_user.id:
         abort(403)
     p.delete_images()
+    p.delete_likes()
     db.session.delete(p)
     db.session.commit()
     next = request.args.get('next')

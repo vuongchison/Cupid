@@ -1,6 +1,6 @@
 {% for post in posts %}
-<div class="card shadow p-3 mb-3  bg-white rounded post">
-    <div class="card-body bg-white">
+<div class="card shadow mb-3  bg-white rounded post">
+    <div class="card-body bg-white pb-1">
         <h6 class="card-title">
             <a href="{{ url_for('main.user', uuid=post.author.uuid) }}">
                 <img class="rounded-circle"
@@ -37,7 +37,65 @@
                 class="mx-auto d-block img-fluid">
             {% endif %}
         </div>
+
+        <div class="mt-3 py-2 border">
+            <span class="p-1 pb-2 px-3 " style="cursor: pointer;" id="{{ post.uuid }}" onclick="like(this.id);">
+           
+                {% if not post.count_likes %}
+                {% set count_likes = ''%}
+                {% else %}
+                {% set count_likes = post.count_likes %}
+                {% endif %}
+
+                {% if current_user.is_like(post) %}
+                <img src="../static/liked.png" width="26"> 
+                <b class="ml-1 text-primary">Like</b>
+                <b class="ml-2 text-primary count-likes">{{ count_likes }}</b>
+                {% else %}
+                <img src="../static/like.png" width="26"> 
+                <b class="ml-1 ">Like</b>
+                <b class="ml-2 count-likes">{{ count_likes }}</b>
+                {% endif %}
+                
+                
+            </span>
+        </div>
     </div>
 </div>
 
 {% endfor %}
+
+<script>
+    function like(id){
+        //console.log(id);
+        var likeimg = $('#'+id).children('img');
+        var liketext = $('#'+id).children('b');
+        if (likeimg.attr('src') == '../static/like.png'){
+            likeimg.attr('src', "../static/liked.png");
+            liketext.addClass('text-primary');
+        }
+        else{
+            likeimg.attr('src', "../static/like.png");
+            liketext.removeClass('text-primary');
+        }
+
+        $.ajax(
+            {
+                url: 'api/v1.0/post/like',
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({uuid: id}),
+                success: function(data){
+                    if (data['count_likes'] == 0){
+                        $('#'+id).children('b.count-likes').html('');
+                    }
+                    else{
+                        $('#'+id).children('b.count-likes').html(data['count_likes']);
+                    }
+                    
+                }
+            }
+        );
+    }
+</script>

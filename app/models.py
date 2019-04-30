@@ -304,6 +304,19 @@ class User(db.Model, UserMixin):
         - coordinates: 1 bộ gồm kinh độ và vĩ độ (latitude, longitude)"""
         self.latitude, self.longitude = coordinates
 
+    def like(self, post):
+        l = Like.query.filter_by(user_id=self.id, post_id=post.id).first()
+        if l is not None:
+            post.count_likes -= 1
+            db.session.delete(l)
+        else:
+            post.count_likes += 1
+            l = Like(user_id=self.id, post_id=post.id)
+            db.session.add(l)
+        db.session.commit()
+    def is_like(self, post):
+        return Like.query.filter_by(user_id=self.id, post_id=post.id).first() is not None
+
     def __repr__(self):
         return '<User %d %s %s %s %s %s %s %s %s>' % (self.id, self.name, self.email, self.birthday, self.gender, self.province, self.phone_number, self.height, self.weight)
 
@@ -323,6 +336,9 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
 
     images = db.relationship('Image', backref='post', lazy='dynamic')
+
+    likes = db.relationship('Like')
+    count_likes = db.Column(db.Integer, default=0)
 
     @staticmethod
     def generate_fake(count=10):
@@ -348,6 +364,14 @@ class Post(db.Model):
             remove('app/static/img/post/' + i.uuid + '.png')
             db.session.delete(i)
         db.session.commit()
+
+    def delete_likes(self):
+        Like.query.filter_by(post_id=self.id).delete()
+        db.session.commit()
+
+    
+    # def count_likes(self):
+    #     return Like.query.filter_by(post_id=self.id).count()
 
 class Province(db.Model):
     __tablename__ = 'provinces'
@@ -414,4 +438,14 @@ class Image(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), index=True)
 
 
+class Like(db.Model):
+    __tablename__ = 'likes'
 
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), index=True)
+
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User')
+    post = db.relationship('Post')

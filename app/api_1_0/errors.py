@@ -2,6 +2,11 @@ from flask import jsonify
 from app.exceptions import ValidationError
 from . import api
 
+def page_not_found(message):
+    response = jsonify({'error': 'page not found', 'message': message})
+    response.status_code = 404
+    return response
+
 def forbidden(message):
     response = jsonify({'error': 'forbidden', 'message': message})
     response.status_code = 403
