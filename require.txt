@@ -20,3 +20,4 @@ Werkzeug==0.15.2
 WTForms==2.2.1
 flask-request-validator==2.1.0
 Flask-HTTPAuth==3.2.4
+geopy==1.19.0

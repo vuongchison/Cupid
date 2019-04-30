@@ -21,7 +21,10 @@ import dateutil.parser
 )
 def get_news_noti(timestamp):
     # print(current_user.notifications.all())
-    timestamp = dateutil.parser.parse(timestamp)
-    res = current_user.notifications.filter_by(read=False).filter(Notification.timestamp >= timestamp).all()
-    res = [{'id': n.id, 'image': n.image, 'body': n.body, 'link': n.link, 'timestamp': n.timestamp.isoformat()} for n in res]
+    if (current_user.new_noti == 0):
+        res = []
+    else:
+        timestamp = dateutil.parser.parse(timestamp)
+        res = current_user.notifications.filter_by(read=False).filter(Notification.timestamp >= timestamp).limit(current_user.new_noti).all()
+        res = [{'id': n.id, 'image': n.image, 'body': n.body, 'link': n.link, 'timestamp': n.timestamp.isoformat()} for n in res]
     return jsonify({'notifications': res})

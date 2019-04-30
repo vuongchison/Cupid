@@ -5,6 +5,7 @@ from flask_script import Manager, Shell
 from app import create_app, db
 from app.models import User, Post, Province
 from config import config
+from geoalchemy2.elements import WKTElement
 
 config_name = os.getenv('FLASK_CONFIG') or 'default'
 app = create_app(config_name)
@@ -52,6 +53,16 @@ def runserver():
     app.run(ssl_context=context, threaded=True)
     # app.run(threaded=True)
 
+@manager.command
+def nulo():
+    from geopy.geocoders import OpenCage
+    geolocator = OpenCage('d1d1fbc618ef41b89d3ebde37f53d1b2')
+    for p in Province.query.all():
+        g = geolocator.geocode( p.name + ", Việt Nam", timeout=60)
+        p.latitude = g.latitude
+        p.longitude = g.longitude
+        print((p.latitude, p.longitude))
+    db.session.commit()
 
 manager.add_command('shell', Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)

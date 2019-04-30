@@ -114,22 +114,26 @@
 
 {% block scripts %}
 {{ super() }}
+{% if current_user.is_authenticated %}
+
+<!-- moment -->
 {{ moment.include_moment() }}
 {{ moment.lang("vi")}}
+
+<!-- tooltip -->
 <script>
     $(document).ready(function () {
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
 
-
+<!-- Check thông báo mới -->
 <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/alertify.min.js"></script>
 <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/alertify.min.css"/>
 <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/themes/bootstrap.min.css"/>
-
 <script>
         var timestamp = new Date(Date.now()).toISOString(); 
-        console.log(timestamp);
+        //console.log(timestamp);
         function get_news_notification(count, callback) {
             $.ajax(
                 {
@@ -145,13 +149,13 @@
         var timeout_notification_check = 5000;
         function check_new_notification() {
         setTimeout(function () {
-            console.log('check_new_notification');
+            //console.log('check_new_notification');
             get_news_notification(null, function (data) {
                 timestamp = new Date(Date.now()).toISOString()
                 notifications = data['notifications'];
                 var n = notifications.length
                 if (n != 0) {
-                    console.log(notifications)
+                    //console.log(notifications)
                     for (var i in notifications)
                     {
                         n = '<p style="cursor: pointer;" onclick="window.location=\'' + notifications[i].link + '\'">' + notifications[i].body + '</p>'
@@ -176,4 +180,34 @@
     check_new_notification()
 
 </script>
+
+<!-- Gửi tọa độ địa lý của người dùng lên server -->
+<script src="../static/jquery.cookie.js"></script>
+<script>
+    function send_coordinates(coords){
+        $.ajax(
+            {
+                url: '/api/v1.0/user/coordinates',
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(coords)
+            }
+        );
+    }
+
+    if (!$.cookie('coords') && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            //console.log(position);
+            //console.log(position.coords.latitude + ', ' + position.coords.longitude);
+            coords = { latitude: position.coords.latitude, longitude: position.coords.longitude, timestamp: new Date(position.timestamp).toISOString() };
+            $.cookie('coords', JSON.stringify(coords), { expires: 10 });
+            //send to server
+            send_coordinates(coords);
+        });
+    }
+   
+   
+</script>
+{% endif %}
 {% endblock %}

@@ -26,6 +26,6 @@ class ProvinceModelTestCase(unittest.TestCase):
         u = User(email='abc@gmail.com', password='123456')
         db.session.add(u)
         p = Province.query.filter_by(name='Hà Nội').first()
-        u.province_id = p.id
+        u.province = p
         db.session.add(u)
         self.assertEqual(u.province, p)

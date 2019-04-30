@@ -78,7 +78,10 @@ class User(db.Model, UserMixin):
     about_me = db.Column(db.String(256))
     height = db.Column(db.Integer)
     weight = db.Column(db.Integer)
-    
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+
+
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     
     notifications = db.relationship('Notification', backref='user', lazy='dynamic')
@@ -282,6 +285,24 @@ class User(db.Model, UserMixin):
         """Trả về câu truy vấn lấy các tin nhắn mới nhất với user."""
         return Message.query.filter( (Message.sender_id == self.id) | (Message.receiver_id == self.id) ).order_by(Message.timestamp.desc())
 
+    @property
+    def coordinates(self)->'(latitude, longitude)':
+        """Trả về tọa độ địa lý của user dưới dạng 1 bộ: (latitude, longitude).
+            - Nếu không biết được vị trí chính xác, trả về tọa độ của tỉnh/ thành của user
+            - Nếu không biết tỉnh/ thành của user, trả về None"""
+        if self.latitude is not None:
+            return (self.latitude, self.longitude)
+        elif self.province_id is not None:
+            return self.province.coordinates
+        else:
+            return None
+
+    @coordinates.setter
+    def coordinates(self, coordinates: '(latitude, longitude)'):
+        """Thiết đặt tọa độ địa lý cho user.
+        - coordinates: 1 bộ gồm kinh độ và vĩ độ (latitude, longitude)"""
+        self.latitude, self.longitude = coordinates
+
     def __repr__(self):
         return '<User %d %s %s %s %s %s %s %s %s>' % (self.id, self.name, self.email, self.birthday, self.gender, self.province, self.phone_number, self.height, self.weight)
 
@@ -325,9 +346,22 @@ class Province(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), unique=True, index=True)
-
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
     users = db.relationship('User', backref='province', lazy='dynamic')
     
+    @property
+    def coordinates(self)->'(latitude, longitude)':
+        """Trả về tọa độ địa lý của tỉnh/ thành dưới dạng 1 bộ: (latitude, longitude)."""
+    
+        return (self.latitude, self.longitude)
+
+    @coordinates.setter
+    def coordinates(self, coordinates: '(latitude, longitude)'):
+        """Thiết đặt tọa độ địa lý.
+        - coordinates: 1 bộ gồm kinh độ và vĩ độ (latitude, longitude)"""
+        self.latitude, self.longitude = coordinates
+
     def __repr__(self):
         return '<Province %d %s>' % (self.id, self.name)
     
@@ -350,9 +384,9 @@ class Notification(db.Model):
     body = db.Column(db.Text)
     link = db.Column(db.Text)
     
-    read = db.Column(db.Boolean, default=False)
+    read = db.Column(db.Boolean, default=False, index=True)
 
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     # def __init__(self, **kwargs):
     #     super(Notification, self).__init__(**kwargs)
@@ -363,8 +397,7 @@ class Notification(db.Model):
     def mark_read(self):
         self.read = True
         db.session.commit()
-
-    
+ 
 
 
 

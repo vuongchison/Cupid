@@ -1,5 +1,5 @@
 import unittest
-from app.models import User, Follow
+from app.models import User, Follow, Province
 from app import create_app, db
 import time
 from config import config
@@ -180,5 +180,14 @@ class UserModelTestCase(unittest.TestCase):
         u1 = User(email= 'u1@gmail.com')
         db.session.add(u1)
         db.session.commit()
-
+    
         self.assertTrue(u1.is_active())
+    
+    def test_coordinates(self):
+        u1 = User(email= 'u1@gmail.com')
+        p = Province.query.filter_by(name='Hà Nội').first()
+        u1.province = p
+        db.session.add(u1)
+        db.session.commit()
+
+        self.assertEqual(p.coordinates, u1.coordinates)
