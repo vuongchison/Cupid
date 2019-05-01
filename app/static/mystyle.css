@@ -58,7 +58,8 @@ header h1 {
 }
 
 .comment {
-    max-width: 800px;
+    display: inline-block;
+    max-width: 450px;
     border-radius: 18px;
     background-color: #f2f3f5
 }

@@ -211,7 +211,7 @@
             title = moment.utc(c.timestamp).local().calendar()
             c.body = c.body.split('\n').join('<br>')
 
-            res += '<div class="row my-4 ">\n<div class="col">\n<img class="float-left rounded-circle" src="'+ c.user.avatar +'"><div class="ml-3"><div class="card shadow p-2 px-3 mb-1 ml-5  bg-white comment" data-toggle="tooltip"\ntitle="' + title + '" data-placement="right"> <a class="mr-3" href="'+ c.user.url + '"><b>'+ c.user.name +'</b></a>' +  c.body + '</div></div>\n</div>\n</div>'
+            res += '<div class="row my-4 " >\n<div class="col">\n<img class="float-left rounded-circle" src="'+ c.user.avatar +'" "><div class=" card  p-2 px-3 mb-1 ml-2  bg-white comment" data-toggle="tooltip"\ntitle="' + title + '" data-placement="right"> <a class="mr-3" href="'+ c.user.url + '"><b>'+ c.user.name +'</b></a>' +  c.body + '</div>\n</div>\n</div>'
         }
         if (add_top)
             $('#comments').prepend(res)
