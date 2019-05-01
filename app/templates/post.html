@@ -5,7 +5,10 @@
 
 {% block page_header %}
 <div class="container px-4">
-        <img class="float-left rounded-circle " src="{{ url_for('images.crop', filename=post.author.avatar, width=48, height=48, quality=90) }}">
+    <!-- avatar, tên, thời gian  -->
+    <div>
+        <img class="float-left rounded-circle "
+            src="{{ url_for('images.crop', filename=post.author.avatar, width=48, height=48, quality=90) }}">
         <h6><a href="{{ url_for('main.user', uuid=post.author.uuid) }}" class="ml-3">{{ post.author.name }}</a>
             <span class="text-muted"> <small>{{ moment(post.created).fromNow() }}</small></span>
             {% if post.author_id == current_user.id %}
@@ -14,21 +17,27 @@
                 </button>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="{{ url_for('main.edit_post', uuid=post.uuid) }}">Chỉnh sửa</a>
-                    <a class="dropdown-item" href="{{ url_for('main.delete_post', uuid=post.uuid, next=url_for('main.user_homepage')) }}">Xóa</a>
+                    <a class="dropdown-item"
+                        href="{{ url_for('main.delete_post', uuid=post.uuid, next=url_for('main.user_homepage')) }}">Xóa</a>
                 </div>
             </div>
             {% endif %}
         </h6>
-    
-        <p class="mt-5" align="justify">
-            {{ post.body }}
-        </p>
+    </div>
 
+    <!-- nội dung post -->
+    <div>
+        <!-- chữ -->
+        <p class="mt-5" align="justify" style="white-space: pre-line">{{ post.body }}</p>
+
+        <!-- ảnh -->
         {% if post.images.all() %}
         <img src="{{ url_for('images', filename=post.images[0].uuid + '.png', height=1000, quality=90) }}" class="mx-auto d-block img-fluid">
         {% endif %}
-
     </div>
+
+
+</div>
 {% endblock %}
 
 {% block page_content %}
