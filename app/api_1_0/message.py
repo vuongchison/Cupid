@@ -86,7 +86,6 @@ def send(uuid, body):
         abort(403)
 
     body = escape(body.strip())
-    print(body)
     m = current_user.message(u, body)
 
     return jsonify({'id': m.id, 'timestamp': m.timestamp.isoformat()})

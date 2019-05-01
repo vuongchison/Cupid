@@ -57,6 +57,12 @@ header h1 {
     max-width: 800px;
 }
 
+.comment {
+    max-width: 800px;
+    border-radius: 18px;
+    background-color: #f2f3f5
+}
+
 .last-message {
     margin-right: auto;
     margin-left: auto;

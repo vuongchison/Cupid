@@ -10,6 +10,7 @@ import enum
 from datetime import datetime
 from flask import jsonify
 from os import remove
+from flask_images import resized_img_src
 
 class Gender(db.Model):
     __tablename__ = 'genders'
@@ -283,7 +284,7 @@ class User(db.Model, UserMixin):
         return LastMessage.query.filter_by(user1_id=self.id).join(Message, Message.id == LastMessage.message_id)
 
     def get_latest_messages(self, user):
-        """Trả về câu truy vấn lấy các tin nhắn mới nhất với user."""
+        """Trả về câu truy vấn lấy các tin nhắn với user, xắp sếp từ tin nhắn mới đến cũ."""
         return Message.query.filter( (Message.sender_id == self.id) | (Message.receiver_id == self.id) ).order_by(Message.timestamp.desc())
 
     @property
@@ -314,8 +315,17 @@ class User(db.Model, UserMixin):
             l = Like(user_id=self.id, post_id=post.id)
             db.session.add(l)
         db.session.commit()
+    
     def is_like(self, post):
         return Like.query.filter_by(user_id=self.id, post_id=post.id).first() is not None
+
+
+    def comment(self, post, body):
+        c = Comment(user_id=self.id, post_id=post.id, body=body)
+        post.count_comments += 1
+        db.session.add(c)
+        db.session.commit()
+        return c
 
     def __repr__(self):
         return '<User %d %s %s %s %s %s %s %s %s>' % (self.id, self.name, self.email, self.birthday, self.gender, self.province, self.phone_number, self.height, self.weight)
@@ -340,6 +350,9 @@ class Post(db.Model):
     likes = db.relationship('Like')
     count_likes = db.Column(db.Integer, default=0)
 
+    comments = db.relationship('Comment')
+    count_comments = db.Column(db.Integer, default=0)
+
     @staticmethod
     def generate_fake(count=10):
         import forgery_py
@@ -359,6 +372,10 @@ class Post(db.Model):
         
         db.session.commit()
 
+    def get_latest_comments(self):
+        """Trả về câu truy vấn lấy tất cả comment của post, sắp xếp từ mới đến cũ."""
+        return Comment.query.filter_by(post_id=self.id).order_by(Comment.timestamp.desc())
+
     def delete_images(self):
         for i in self.images:
             remove('app/static/img/post/' + i.uuid + '.png')
@@ -367,11 +384,13 @@ class Post(db.Model):
 
     def delete_likes(self):
         Like.query.filter_by(post_id=self.id).delete()
+        self.count_likes = 0
         db.session.commit()
 
-    
-    # def count_likes(self):
-    #     return Like.query.filter_by(post_id=self.id).count()
+    def delete_comments(self):
+        Comment.query.filter_by(post_id=self.id).delete()
+        self.count_comments = 0
+        db.session.commit()
 
 class Province(db.Model):
     __tablename__ = 'provinces'
@@ -449,3 +468,19 @@ class Like(db.Model):
 
     user = db.relationship('User')
     post = db.relationship('Post')
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), index=True)
+
+    body = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User')
+    post = db.relationship('Post')
+
+    def todict(self):
+        return {'id': self.id, 'user': {'uuid': self.user.uuid, 'name': self.user.name, 'avatar': resized_img_src(self.user.avatar, width=48, height=48, mode='crop'), 'url': url_for('main.user', uuid=self.user.uuid)}, 'body': self.body, 'timestamp': self.timestamp.isoformat()}

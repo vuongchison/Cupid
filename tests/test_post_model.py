@@ -1,5 +1,5 @@
 import unittest
-from app.models import Post, User, Like
+from app.models import Post, User, Like, Comment
 from app import create_app, db
 import time
 from config import config
@@ -61,3 +61,18 @@ class PostModelTestCase(unittest.TestCase):
         p.delete_likes()
         self.assertIsNone(Like.query.filter_by(user_id=u2.id, post_id=p.id).first())
         self.assertEqual(len(p.likes), 0)
+
+    def test_comment_post(self):
+        u1 = User(email='chison@gmail.com', password='123456')
+        u2 = User(email='user2@gmail.com', password='123456')
+        db.session.add_all([u1, u2])
+        db.session.commit()
+        p = Post(body='blabla', author_id=u1.id)
+        db.session.add(p)
+        db.session.commit()
+
+        u2.comment(p, 'hello u1')
+        self.assertEqual(Comment.query.filter_by(user=u2, post=p).count(), 1)
+        c = Comment.query.filter_by(user=u2, post=p).first()
+        self.assertEqual(c.body, 'hello u1')
+        self.assertEqual(p.count_comments, 1)

@@ -44,7 +44,7 @@
             {% endif %}
         </div>
 
-        <div class="mt-3 py-2 border">
+        <div class="mt-3 py-2 border border-right-0 border-left-0">
             <!-- nút like -->
             <span class="p-1 pb-2 px-3 " style="cursor: pointer;" id="like{{ post.uuid }}" onclick="like('{{ post.uuid }}');">
                 {% if not post.count_likes %}
@@ -62,6 +62,15 @@
                 <b class="ml-1 ">Like</b>
                 <b class="ml-2 count-likes">{{ count_likes }}</b>
                 {% endif %}
+            </span>
+
+            <!-- nút comment -->
+            <span class="p-1 pb-2 px-3 " style="cursor: pointer;"  onclick="window.location='{{ url_for('main.post', uuid=post.uuid) }}'">
+                    <img src="../static/comment.png" width="26">
+                    <b class="ml-1 ">Comment</b>
+                    {% if post.count_comments > 0 %}
+                    <b class="ml-2">{{ post.count_comments }}</b>
+                    {% endif %}
             </span>
         </div>
     </div>
@@ -86,7 +95,7 @@
 
         $.ajax(
             {
-                url: 'api/v1.0/post/like',
+                url: '/api/v1.0/post/like',
                 type: 'post',
                 dataType: 'json',
                 contentType: 'application/json',
