@@ -103,4 +103,4 @@ def message_check_news(timestamp):
         timestamp = dateutil.parser.parse(timestamp)
         res = current_user.message_r.filter_by(read=False).filter(Message.timestamp >= timestamp).limit(current_user.new_message).all()
         res = [{'id': m.id, 'user': {'uuid': m.sender.uuid, 'name': m.sender.name, 'avatar': resized_img_src(m.sender.avatar, width=48, height=48, mode='crop') }, 'link': url_for('main.inbox', uuid=m.sender.uuid), 'timestamp': m.timestamp.isoformat()} for m in res]
-    return jsonify({'messages': res})    
+    return jsonify({'messages': res, 'new_message': current_user.new_message})    

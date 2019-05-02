@@ -34,14 +34,14 @@
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.message') }}">
         <img src="../static/message.png" alt="Message" style="width:20px;">
         {% if current_user.new_message > 0 %}
-        <small><span
+        <small><span id='new-message'
                 class="badge badge-pill badge-danger">{% if current_user.new_message < 100 %}{{ current_user.new_message }}{% else %}99+{% endif %}</span></small>
         {% endif %}
     </a>
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.notification') }}">
         <img src="../static/notification.png" alt="Notification" style="width:20px;">
         {% if current_user.new_noti > 0 %}
-        <small><span
+        <small><span id='new-noti'
                 class="badge badge-pill badge-primary">{% if current_user.new_noti < 100 %}{{ current_user.new_noti }}{% else %}99+{% endif %}</span></small>
         {% endif %}
     </a>
@@ -136,18 +136,6 @@
 <script>
     var timestamp_notification = new Date(Date.now()).toISOString();
 
-    function get_news_notification(count, callback) {
-        $.ajax(
-            {
-                url: '/api/v1.0/notification/get_news',
-                type: 'post',
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function (data) { callback(data); },
-                data: JSON.stringify({ timestamp: timestamp_notification })
-            });
-    }
-
     var timeout_check_new_notification = 5000;
     function check_new_notification() {
         setTimeout(function () {
@@ -162,16 +150,24 @@
                         notifications = data['notifications'];
                         var n = notifications.length
                         if (n != 0) {
-                            //console.log(notifications)
                             for (var i in notifications) {
                                 n = '<p style="cursor: pointer;" onclick="window.location=\'' + notifications[i].link + '\'">' + notifications[i].body + '</p>'
-                                //console.log(n);
                                 alertify.notify(n, 'success', 5);
                             }
                             timeout_check_new_notification = 1000;
                         } else {
                             if (timeout_check_new_notification <= 10000)
                                 timeout_check_new_notification += Math.random() * (1000);
+                        }
+                        
+                        if (data.new_noti > 0){
+                            if (data.new_noti < 100)
+                                $('#new-noti').html(data.new_noti);
+                            else
+                                $('#new-noti').html('99+');
+                        }
+                        else{
+                            $('#new-noti').html('');
                         }
                     },
                     error: function(xhr, textstatus, error){
@@ -189,7 +185,6 @@
 
 <script>
     var timestamp_message = new Date(Date.now()).toISOString();
-
     var timeout_check_new_message = 5000;
     function check_new_message() {
         setTimeout(function () {
@@ -214,6 +209,15 @@
                         } else {
                             if (timeout_check_new_notification <= 10000)
                                 timeout_check_new_notification += Math.random() * (1000);
+                        }
+                        if (data.new_message > 0){
+                            if (data.new_message < 100)
+                                $('#new-message').html(data.new_message);
+                            else
+                                $('#new-message').html('99+');
+                        }
+                        else{
+                            $('#new-message').html('');
                         }
                     },
                     error: function(xhr, textstatus, error){

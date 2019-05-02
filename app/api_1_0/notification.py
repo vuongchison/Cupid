@@ -27,4 +27,4 @@ def get_news_noti(timestamp):
         timestamp = dateutil.parser.parse(timestamp)
         res = current_user.notifications.filter_by(read=False).filter(Notification.timestamp >= timestamp).limit(current_user.new_noti).all()
         res = [{'id': n.id, 'image': n.image, 'body': n.body, 'link': n.link, 'timestamp': n.timestamp.isoformat()} for n in res]
-    return jsonify({'notifications': res})
+    return jsonify({'notifications': res, 'new_noti': current_user.new_noti})
