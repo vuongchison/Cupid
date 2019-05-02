@@ -151,24 +151,34 @@
     var timeout_check_new_notification = 5000;
     function check_new_notification() {
         setTimeout(function () {
-            //console.log('check_new_notification');
-            get_news_notification(null, function (data) {
-                timestamp_notification = new Date(Date.now()).toISOString()
-                notifications = data['notifications'];
-                var n = notifications.length
-                if (n != 0) {
-                    //console.log(notifications)
-                    for (var i in notifications) {
-                        n = '<p style="cursor: pointer;" onclick="window.location=\'' + notifications[i].link + '\'">' + notifications[i].body + '</p>'
-                        //console.log(n);
-                        alertify.notify(n, 'success', 5);
-                    }
-                    timeout_check_new_notification = 1000;
-                } else {
-                    if (timeout_check_new_notification <= 10000)
-                        timeout_check_new_notification += Math.random() * (1000);
-                }
-            });
+            $.ajax(
+                {
+                    url: '/api/v1.0/notification/get_news',
+                    type: 'post',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        timestamp_notification = new Date(Date.now()).toISOString()
+                        notifications = data['notifications'];
+                        var n = notifications.length
+                        if (n != 0) {
+                            //console.log(notifications)
+                            for (var i in notifications) {
+                                n = '<p style="cursor: pointer;" onclick="window.location=\'' + notifications[i].link + '\'">' + notifications[i].body + '</p>'
+                                //console.log(n);
+                                alertify.notify(n, 'success', 5);
+                            }
+                            timeout_check_new_notification = 1000;
+                        } else {
+                            if (timeout_check_new_notification <= 10000)
+                                timeout_check_new_notification += Math.random() * (1000);
+                        }
+                    },
+                    error: function(xhr, textstatus, error){
+                        timeout_check_new_notification = 10000;
+                    },
+                    data: JSON.stringify({ timestamp: timestamp_notification })
+                });
             check_new_notification();
         }, timeout_check_new_notification)
     }
@@ -195,10 +205,9 @@
                         messages = data['messages'];
                         var n = messages.length
                         if (n != 0) {
-                            //console.log(notifications)
                             for (var i in messages) {
-                                m = '<p style="cursor: pointer;" onclick="window.location=\'' + messages[i].link + '\'"><b>'+ messages[i].user.name +'</b> đã nhắn tin cho bạn </p>'
-                                //console.log(n);
+                                m = '<p style="cursor: pointer;" onclick="window.location=\'' + messages[i].link + '\'"><b>' + messages[i].user.name + '</b> đã nhắn tin cho bạn </p>'
+                                
                                 alertify.notify(m, 'success', 5);
                             }
                             timeout_check_new_notification = 1000;
@@ -206,6 +215,9 @@
                             if (timeout_check_new_notification <= 10000)
                                 timeout_check_new_notification += Math.random() * (1000);
                         }
+                    },
+                    error: function(xhr, textstatus, error){
+                        timeout_check_new_notification = 10000;
                     },
                     data: JSON.stringify({ timestamp: timestamp_message })
                 });
