@@ -221,8 +221,8 @@ class User(db.Model, UserMixin):
             m1 = Match(user1_id=self.id, user2_id=user.id)
             m2 = Match(user1_id=user.id, user2_id=self.id)
             db.session.add_all([m1, m2])
-            self.noti_match(match_with=user)
-            user.noti_match(match_with=self)
+            self.notify_match(match_with=user)
+            user.notify_match(match_with=self)
 
         db.session.commit()
 
@@ -248,16 +248,26 @@ class User(db.Model, UserMixin):
     def is_match_with(self, user):
         return self.match.filter_by(user2_id=user.id).first() is not None
 
-    def noti(self, type_id, image=None, link=None, body=None):
+    def notify(self, type_id, image=None, link=None, body=None):
         n = Notification(user_id=self.id, type_id=type_id, image=image, link=link, body=body)
         self.new_noti += 1
         db.session.add(n)
         db.session.commit()
 
-    def noti_match(self, match_with):
+    def notify_match(self, match_with):
         body = 'Chúc mừng, bạn và <b>%s</b> đã match với nhau, bạn có thể nhắn tin cho %s ấy.' % (match_with.name or 'người ấy', 'bạn' if match_with.gender is None else 'anh' if match_with.gender.name == 'Nam' else 'cô')
-        self.noti(type_id=3, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body=body)
-        
+        self.notify(type_id=3, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body=body)
+    
+    def notify_like_post(self, user, post):
+        body = '<b>%s</b> đã thích bài đăng của bạn.' % (user.name)
+        self.notify(type_id=4, image=user.avatar, link=url_for('main.post', uuid=post.uuid), body=body)
+        print('notify_like_post')
+
+    def notify_comment_post(self, user, post):
+        body = '<b>%s</b> đã bình luận vào bài đăng của bạn.' % (user.name)
+        self.notify(type_id=5, image=user.avatar, link=url_for('main.post', uuid=post.uuid), body=body)
+        print('notify_comment_post')
+
 
     def message(self, receiver: 'User', body)->'Message':
         """Gửi tin nhắn. Trả về đối tượng Message."""
@@ -314,6 +324,10 @@ class User(db.Model, UserMixin):
             post.count_likes += 1
             l = Like(user_id=self.id, post_id=post.id)
             db.session.add(l)
+
+            # Gửi thông báo đến chủ bài post
+            if self != post.author:
+                post.author.notify_like_post(user=self, post=post)
         db.session.commit()
     
     def is_like(self, post):
@@ -321,10 +335,15 @@ class User(db.Model, UserMixin):
 
 
     def comment(self, post, body):
+        """Bình luận vào bài post với nội dung body."""
         c = Comment(user_id=self.id, post_id=post.id, body=body)
         post.count_comments += 1
         db.session.add(c)
         db.session.commit()
+
+        # gửi thông báo đến chủ bài post
+        if self != post.author:
+            post.author.notify_comment_post(user=self, post=post)
         return c
 
     def __repr__(self):

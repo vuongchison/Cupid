@@ -32,7 +32,7 @@ class Config:
         
         gendersList = ['Nam', 'Nữ']
         
-        notificationsList = ['admin', 'auth', 'match']
+        notificationsList = ['admin', 'auth', 'match', 'like', 'comment']
         
         with app.app_context():
             i = 0

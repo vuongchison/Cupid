@@ -246,6 +246,29 @@
     }
 
 
+    var timeout_check_new_comments = 5000;
+    function check_new_comments() {
+        setTimeout(function () {
+            console.log('check_new_comments');
+            get_news(null, function (data) {
+                comments = data['comments'].reverse();
+                var n = comments.length
+                if (n != 0) {
+                    latest = comments[n - 1].id;
+                    render_comment(comments, false)
+                    timeout = 1000; //nếu có comment, check tin nhắn sau mỗi 1s
+                }else{
+                    if (timeout_check_new_comments <= 10000)
+                    timeout_check_new_comments += Math.random() * (1000)
+                }
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+
+            check_new_comments();
+
+        }, timeout_check_new_comments) 
+    }
+
     $(document).ready(function () {
         get_news(10, function (data) {
             comments = data['comments'].reverse();
@@ -260,6 +283,7 @@
             }
             $('[data-toggle="tooltip"]').tooltip();
         });
+        check_new_comments();
     });
 
     function getCaret(el) {

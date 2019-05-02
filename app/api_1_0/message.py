@@ -12,12 +12,12 @@ from flask_request_validator import (
     validate_params
 )
 from html import escape
+from datetime import datetime
+import dateutil.parser
+from flask_images import resized_img_src
 
 
 
-@api.route('/message/')
-def message():
-    return jsonify({'OK': 'OK'})
 
 @api.route('/message/get_news', methods=['POST'])
 @validate_params(
@@ -91,4 +91,16 @@ def send(uuid, body):
     return jsonify({'id': m.id, 'timestamp': m.timestamp.isoformat()})
 
 
-    
+@api.route('/message/check-news', methods=['POST'])
+@validate_params(
+    Param('timestamp', JSON, str, required=False),
+)
+def message_check_news(timestamp):
+
+    if (current_user.new_message == 0):
+        res = []
+    else:
+        timestamp = dateutil.parser.parse(timestamp)
+        res = current_user.message_r.filter_by(read=False).filter(Message.timestamp >= timestamp).limit(current_user.new_message).all()
+        res = [{'id': m.id, 'user': {'uuid': m.sender.uuid, 'name': m.sender.name, 'avatar': resized_img_src(m.sender.avatar, width=48, height=48, mode='crop') }, 'link': url_for('main.inbox', uuid=m.sender.uuid), 'timestamp': m.timestamp.isoformat()} for m in res]
+    return jsonify({'messages': res})    

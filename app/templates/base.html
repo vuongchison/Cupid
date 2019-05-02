@@ -33,14 +33,16 @@
     {% if current_user.is_authenticated %}
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.message') }}">
         <img src="../static/message.png" alt="Message" style="width:20px;">
-        {% if current_user.new_message %}
-        <small><span class="badge badge-pill badge-danger">{% if current_user.new_message < 100 %}{{ current_user.new_message }}{% else %}99+{% endif %}</span></small>
+        {% if current_user.new_message > 0 %}
+        <small><span
+                class="badge badge-pill badge-danger">{% if current_user.new_message < 100 %}{{ current_user.new_message }}{% else %}99+{% endif %}</span></small>
         {% endif %}
     </a>
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.notification') }}">
         <img src="../static/notification.png" alt="Notification" style="width:20px;">
-        {% if current_user.new_noti %}
-        <small><span class="badge badge-pill badge-primary">{% if current_user.new_noti < 100 %}{{ current_user.new_noti }}{% else %}99+{% endif %}</span></small>
+        {% if current_user.new_noti > 0 %}
+        <small><span
+                class="badge badge-pill badge-primary">{% if current_user.new_noti < 100 %}{{ current_user.new_noti }}{% else %}99+{% endif %}</span></small>
         {% endif %}
     </a>
     <a class="navbar-brand mr-lg-5" href="{{ url_for('main.people') }}">
@@ -129,62 +131,95 @@
 
 <!-- Check thông báo mới -->
 <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/alertify.min.js"></script>
-<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/alertify.min.css"/>
-<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/themes/bootstrap.min.css"/>
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/alertify.min.css" />
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.2/build/css/themes/bootstrap.min.css" />
 <script>
-        var timestamp = new Date(Date.now()).toISOString(); 
-        //console.log(timestamp);
-        function get_news_notification(count, callback) {
-            $.ajax(
-                {
-                    url: '/api/v1.0/notification/get_news',
-                    type: 'post',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    success: function (data) { callback(data); },
-                    data: JSON.stringify({ timestamp: timestamp })
-                });
-        }
+    var timestamp_notification = new Date(Date.now()).toISOString();
 
-        var timeout_notification_check = 5000;
-        function check_new_notification() {
+    function get_news_notification(count, callback) {
+        $.ajax(
+            {
+                url: '/api/v1.0/notification/get_news',
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) { callback(data); },
+                data: JSON.stringify({ timestamp: timestamp_notification })
+            });
+    }
+
+    var timeout_check_new_notification = 5000;
+    function check_new_notification() {
         setTimeout(function () {
             //console.log('check_new_notification');
             get_news_notification(null, function (data) {
-                timestamp = new Date(Date.now()).toISOString()
+                timestamp_notification = new Date(Date.now()).toISOString()
                 notifications = data['notifications'];
                 var n = notifications.length
                 if (n != 0) {
                     //console.log(notifications)
-                    for (var i in notifications)
-                    {
+                    for (var i in notifications) {
                         n = '<p style="cursor: pointer;" onclick="window.location=\'' + notifications[i].link + '\'">' + notifications[i].body + '</p>'
                         //console.log(n);
                         alertify.notify(n, 'success', 5);
                     }
-                    timeout_notification_check = 1000; 
-                }else{
-                    if (timeout_notification_check <= 10000)
-                    timeout_notification_check += Math.random() * (1000)
-                    
+                    timeout_check_new_notification = 1000;
+                } else {
+                    if (timeout_check_new_notification <= 10000)
+                        timeout_check_new_notification += Math.random() * (1000);
                 }
-                
-                
             });
-
             check_new_notification();
-
-        }, timeout_notification_check) 
+        }, timeout_check_new_notification)
     }
 
-    check_new_notification()
+    check_new_notification();
 
+</script>
+
+<script>
+    var timestamp_message = new Date(Date.now()).toISOString();
+
+    var timeout_check_new_message = 5000;
+    function check_new_message() {
+        setTimeout(function () {
+
+            $.ajax(
+                {
+                    url: '/api/v1.0/message/check-news',
+                    type: 'post',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        timestamp_message = new Date(Date.now()).toISOString()
+                        messages = data['messages'];
+                        var n = messages.length
+                        if (n != 0) {
+                            //console.log(notifications)
+                            for (var i in messages) {
+                                m = '<p style="cursor: pointer;" onclick="window.location=\'' + messages[i].link + '\'"><b>'+ messages[i].user.name +'</b> đã nhắn tin cho bạn </p>'
+                                //console.log(n);
+                                alertify.notify(m, 'success', 5);
+                            }
+                            timeout_check_new_notification = 1000;
+                        } else {
+                            if (timeout_check_new_notification <= 10000)
+                                timeout_check_new_notification += Math.random() * (1000);
+                        }
+                    },
+                    data: JSON.stringify({ timestamp: timestamp_message })
+                });
+            check_new_message();
+        }, timeout_check_new_notification)
+    }
+
+    check_new_message();
 </script>
 
 <!-- Gửi tọa độ địa lý của người dùng lên server -->
 <script src="../static/jquery.cookie.js"></script>
 <script>
-    function send_coordinates(coords){
+    function send_coordinates(coords) {
         $.ajax(
             {
                 url: '/api/v1.0/user/coordinates',
@@ -206,8 +241,8 @@
             send_coordinates(coords);
         });
     }
-   
-   
+
+
 </script>
 {% endif %}
 {% endblock %}
