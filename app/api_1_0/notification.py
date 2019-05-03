@@ -17,7 +17,7 @@ import dateutil.parser
 
 @api.route('/notification/get_news', methods=['POST'])
 @validate_params(
-    Param('timestamp', JSON, str, required=False),
+    Param('timestamp', JSON, str, required=True),
 )
 def get_news_noti(timestamp):
     # print(current_user.notifications.all())

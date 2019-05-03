@@ -294,7 +294,7 @@ class User(db.Model, UserMixin):
         return LastMessage.query.filter_by(user1_id=self.id).join(Message, Message.id == LastMessage.message_id)
 
     def get_latest_messages(self, user):
-        """Trả về câu truy vấn lấy các tin nhắn với user, xắp sếp từ tin nhắn mới đến cũ."""
+        """Trả về câu truy vấn lấy các tin nhắn với user, sắp xếp từ tin nhắn mới đến cũ."""
         return Message.query.filter( (Message.sender_id == self.id) | (Message.receiver_id == self.id) ).order_by(Message.timestamp.desc())
 
     @property

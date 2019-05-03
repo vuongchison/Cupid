@@ -42,6 +42,10 @@ def get_news(uuid, count, last_id):
         if m.read == False and m.receiver_id == current_user.id:
             current_user.new_message -= 1
         m.read = True
+
+    if current_user.new_message < 0:
+        current_user.new_message = 0
+
     db.session.commit()
 
     res = [m.todict() for m in res]
@@ -67,6 +71,10 @@ def get_olds(uuid, count, last_id):
         if not m.read and m.receiver_id == current_user.id:
             current_user.new_message -= 1
         m.read = True
+
+    if current_user.new_message < 0:
+        current_user.new_message = 0
+
     db.session.commit()
 
     res = [m.todict() for m in res]    
@@ -93,7 +101,7 @@ def send(uuid, body):
 
 @api.route('/message/check-news', methods=['POST'])
 @validate_params(
-    Param('timestamp', JSON, str, required=False),
+    Param('timestamp', JSON, str, required=True),
 )
 def message_check_news(timestamp):
 
