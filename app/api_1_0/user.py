@@ -14,6 +14,7 @@ from flask_request_validator import (
 from html import escape
 from datetime import datetime
 import dateutil.parser
+from geopy import distance
 
 
 @api.route('/user/coordinates', methods=['POST'])
@@ -23,6 +24,10 @@ import dateutil.parser
     Param('timestamp', JSON, str, required=False)
 )
 def coordinates(latitude, longitude, timestamp):
-    current_user.coordinates = (latitude, longitude)
-    db.session.commit()
+    print('coordinates')
+    if distance.distance((latitude, longitude), current_user.coordinates).km > 0.1: 
+        current_user.coordinates = (latitude, longitude)
+        db.session.commit()
+        print('calculate')
+        current_user.calculate_distances()
     return jsonify({'status': 'OK'})

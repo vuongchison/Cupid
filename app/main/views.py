@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app
 from . import main
-from app.models import User, Post, Notification, Message, Image
+from app.models import User, Post, Notification, Message, Image, Distance
 from flask_login import login_required, current_user
 from .forms import InformationForm, PostForm, EditPostForm, ChangeAvatarForm
 from app import db
@@ -112,10 +112,7 @@ def delete_post(uuid):
     p = Post.query.filter_by(uuid=uuid).first_or_404()
     if p.author_id != current_user.id:
         abort(403)
-    p.delete_images()
-    p.delete_likes()
-    db.session.delete(p)
-    db.session.commit()
+    p.delete()
     next = request.args.get('next')
     if next is None:
         return redirect(url_for('main.index'))
@@ -126,8 +123,10 @@ def delete_post(uuid):
 @login_required
 def people():
     page = request.args.get('page', 1, type=int)
-    pagination =  User.query.filter(User.gender_id != current_user.gender_id).paginate(page, per_page=20, error_out=False)
+    pagination = db.session.query(User, Distance).filter(User.gender_id != current_user.gender_id).filter((User.id == Distance.user1_id) | (User.id == Distance.user2_id)).order_by(Distance.distance.asc()).paginate(page, per_page=20, error_out=False)
+    # pagination =  User.query.filter(User.gender_id != current_user.gender_id).paginate(page, per_page=20, error_out=False)
     people = pagination.items
+    
     return render_template('people.html', people=people, pagination=pagination)
     
 @main.route('/change-avatar', methods=['GET', 'POST'])

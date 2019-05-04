@@ -185,9 +185,12 @@ class UserModelTestCase(unittest.TestCase):
     
     def test_coordinates(self):
         u1 = User(email= 'u1@gmail.com')
+        u2 = User(email= 'u2@gmail.com')
         p = Province.query.filter_by(name='Hà Nội').first()
         u1.province = p
-        db.session.add(u1)
+        u2.province = p
+        db.session.add_all([u1, u2])
         db.session.commit()
 
         self.assertEqual(p.coordinates, u1.coordinates)
+        # self.assertEqual(User.distance(u1, u2), 0)

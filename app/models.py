@@ -11,6 +11,7 @@ from datetime import datetime
 from flask import jsonify
 from os import remove
 from flask_images import resized_img_src
+from geopy import distance
 
 class Gender(db.Model):
     __tablename__ = 'genders'
@@ -213,6 +214,10 @@ class User(db.Model, UserMixin):
         now = datetime.utcnow()
         return (now - self.active).total_seconds()/60 < 5
 
+    # @hybrid_property
+    # def is_active(self):
+    #     return (datetime.utcnow() - self.active).total_seconds()/60 < 5
+
     def follow(self, user):
         if not self.is_following(user):
             f = Follow(follower=self, followed=user)
@@ -261,13 +266,10 @@ class User(db.Model, UserMixin):
     def notify_like_post(self, user, post):
         body = '<b>%s</b> đã thích bài đăng của bạn.' % (user.name)
         self.notify(type_id=4, image=user.avatar, link=url_for('main.post', uuid=post.uuid), body=body)
-        print('notify_like_post')
 
     def notify_comment_post(self, user, post):
         body = '<b>%s</b> đã bình luận vào bài đăng của bạn.' % (user.name)
         self.notify(type_id=5, image=user.avatar, link=url_for('main.post', uuid=post.uuid), body=body)
-        print('notify_comment_post')
-
 
     def message(self, receiver: 'User', body)->'Message':
         """Gửi tin nhắn. Trả về đối tượng Message."""
@@ -314,6 +316,31 @@ class User(db.Model, UserMixin):
         """Thiết đặt tọa độ địa lý cho user.
         - coordinates: 1 bộ gồm kinh độ và vĩ độ (latitude, longitude)"""
         self.latitude, self.longitude = coordinates
+
+
+    def distance(self, user):
+        return distance.distance(self.coordinates, user.coordinates).km
+
+    def calculate_distances(self):
+        for u in User.query.filter(User.gender_id != self.gender_id).all():
+            d = self.distance(u)
+            if (u.id < self.id):
+                user1, user2 = u, self
+            else:
+                user2, user1 = u, self
+
+            dis = Distance.query.filter_by(user1_id=user1.id, user2_id=user2.id).first()
+
+            if dis:
+                dis.d = d
+                dis.timestamp = datetime.utcnow()
+            else:
+                dis = Distance(user1_id=user1.id, user2_id=user2.id, distance=d)
+                db.session.add(dis)
+        
+        db.session.commit()
+
+
 
     def like(self, post):
         l = Like.query.filter_by(user_id=self.id, post_id=post.id).first()
@@ -411,6 +438,13 @@ class Post(db.Model):
         self.count_comments = 0
         db.session.commit()
 
+    def delete(self):
+        self.delete_images()
+        self.delete_comments()
+        self.delete_likes()
+        db.session.delete(self)
+        db.session.commit()
+
 class Province(db.Model):
     __tablename__ = 'provinces'
 
@@ -449,7 +483,8 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     type_id = db.Column(db.Integer, db.ForeignKey('notificationtypes.id'))
-    
+    type_notification = db.relationship('NotificationType')
+
     image = db.Column(db.Text)
     body = db.Column(db.Text)
     link = db.Column(db.Text)
@@ -503,3 +538,15 @@ class Comment(db.Model):
 
     def todict(self):
         return {'id': self.id, 'user': {'uuid': self.user.uuid, 'name': self.user.name, 'avatar': resized_img_src(self.user.avatar, width=48, height=48, mode='crop'), 'url': url_for('main.user', uuid=self.user.uuid)}, 'body': self.body, 'timestamp': self.timestamp.isoformat()}
+
+class Distance(db.Model):
+    __tablename__ = 'distances'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user1_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    user2_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    distance = db.Column(db.Float, index=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow())
+
+
+

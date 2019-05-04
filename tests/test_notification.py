@@ -29,7 +29,7 @@ class NotificationModelTestCase(unittest.TestCase):
 
         self.assertEqual(u.new_noti, 0)
 
-        u.noti(type_id=1, body='test body noti')
+        u.notify(type_id=1, body='test body noti')
         
         # n = Notification(user=u, type_id=1, body='test body noti')
         # db.session.add(n)

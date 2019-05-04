@@ -76,3 +76,4 @@ class PostModelTestCase(unittest.TestCase):
         c = Comment.query.filter_by(user=u2, post=p).first()
         self.assertEqual(c.body, 'hello u1')
         self.assertEqual(p.count_comments, 1)
+        self.assertEqual(u1.notifications[0].type_notification.name, 'comment')
