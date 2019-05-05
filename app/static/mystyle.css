@@ -88,7 +88,6 @@ html, body {
     /* scroll-behavior: smooth; */
 }
 
-
 .inbox-chatbox {
     /* position: fixed; */
     right: 0;
@@ -106,25 +105,24 @@ html, body {
 
 * {
     box-sizing: border-box;
-  }
-  
+}
+
 #inbox-form {
-      display: flex;
-  }
-  
+    display: flex;
+}
 
 textarea {
     display: inline-block;
     width: 90%;
     resize: none;
-  }
-  
+}
+
 #btn-send {
     display: inline-block;
     width: 10%;
-  }
+}
 
-.inbox-form{
+.inbox-form {
     max-width: 700px;
 }
 
@@ -135,7 +133,6 @@ textarea {
 }
 
 .message-right {
-    
     border-top-right-radius: 1.2em;
     border-top-left-radius: 1.2em;
     border-bottom-left-radius: 1.2em;
@@ -146,5 +143,4 @@ textarea {
     border-top-left-radius: 1.2em;
     border-bottom-right-radius: 1.2em;
 }
-
 

@@ -3,35 +3,51 @@
 
 {% block title %}Tìm kiếm bạn mới{% endblock %}
 
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="../static/imagehover.min.css">
+<link rel="stylesheet" href="../static/scss/_custom.scss">
+{% endblock %}
+
 {% block page_header %}
 
 {% endblock %}
 
 {% block page_content %}
 <div class="container">
-    <div class="card-columns">
+    <div class="row">
         {% for user, distance in people %}
-        <div class="card shadow">
-            <div class="card-body">
+        <div class="col-6 col-sm-4 col-md-3 p-2">
+            <div class="card shadow">
+                <div class="card-body">
 
-                <h6 class="card-title">
-                    <a href="{{ url_for('main.user', uuid=user.uuid) }}">{{user.name }}</a>
-                    {% if user.is_active() %}
-                    <span class="align-middle"
-                        style="background: rgb(66, 183, 42); border-radius: 50%; width: 10px; height: 10px;  display: inline-block;"
-                        aria-label="Active Now"></span>
-                    {% endif %}
-                </h6>
+                    <h6 class="card-title">
+                        <a href="{{ url_for('main.user', uuid=user.uuid) }}">{{user.name }}</a>
+                        {% if user.is_active() %}
+                        <span class="align-middle"
+                            style="background: rgb(66, 183, 42); border-radius: 50%; width: 10px; height: 10px;  display: inline-block;"
+                            aria-label="Active Now"></span>
+                        {% endif %}
+                    </h6>
 
-                <p class="card-text" style="cursor: pointer;"
-                    onclick="window.location='{{ url_for('main.user', uuid=user.uuid) }}'">
-                    <p class="text-secondary">{{ user.gender.name }} {{ user.birthday.year }}, {{ user.province.name }}, {{ '%0.2f' |format(distance.distance|float) }} km</p>
-                    {# {{ user.about_me }} #}
-                </p>
+                    <p class="card-text" style="cursor: pointer;"
+                        onclick="window.location='{{ url_for('main.user', uuid=user.uuid) }}'">
+                        
+                        {# {{ user.about_me }} #}
+                    </p>
+                </div>
+                <figure class="imghvr-push-up">
+                    <img class="card-img-bottom"
+                        src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}"
+                        alt="{{ user.name }}">
+                    <figcaption>
+                        {{ user.gender.name }} {{ user.birthday.year }} <br>
+                            {{ user.province.name }}, {{ '%0.2f' |format(distance.distance|float) }} km
+                    </figcaption>
+                </figure>
             </div>
-            <img class="card-img-bottom"
-                src="{{ url_for('images.crop', filename=user.avatar, width=400, height=400, quality=90) }}"
-                alt="{{ user.name }}">
+
+
         </div>
         {% endfor %}
     </div>
