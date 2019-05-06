@@ -5,7 +5,6 @@ from flask_script import Manager, Shell
 from app import create_app, db
 from app.models import User, Post, Province
 from config import config
-from geoalchemy2.elements import WKTElement
 
 config_name = os.getenv('FLASK_CONFIG') or 'default'
 app = create_app(config_name)
@@ -47,10 +46,10 @@ def init_data():
     """Init data to db."""
     config[config_name].init_db(app, db)
 
-@manager.command
-def runserver():
-    context = ('ssl.crt', 'ssl.key')
-    app.run(ssl_context=context, threaded=True)
+# @manager.command
+# def runserver():
+#     context = ('ssl.crt', 'ssl.key')
+#     app.run(ssl_context=context, threaded=True)
     # app.run(threaded=True)
 
 @manager.command
