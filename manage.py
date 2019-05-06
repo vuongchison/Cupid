@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from flask_migrate import Migrate, MigrateCommand, upgrade, migrate
+from flask_migrate import Migrate, MigrateCommand, upgrade, migrate, init
 from flask_script import Manager, Shell
 from app import create_app, db
 from app.models import User, Post, Province
@@ -54,6 +54,8 @@ def init_data():
 
 @manager.command
 def deploy():
+    init()
+    migrate()
     upgrade()
     create()
     init_data()
