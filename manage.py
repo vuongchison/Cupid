@@ -55,7 +55,6 @@ def init_data():
 @manager.command
 def deploy():
     upgrade()
-    create()
     init_data()
 
 @manager.command
