@@ -86,11 +86,11 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + path.join(basedir, 'data-test.sqlite')
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL') or  'sqlite:///' + path.join(basedir, 'data.sqlite')
+    SQLALCHEMY_DATABASE_URI =  'sqlite:///' + path.join(basedir, 'data.sqlite')
     #  environ.get('DATABASE_URL') or 
 
 class HerokuConfig(ProductionConfig):
-    SSL_REDIRECT = True if environ.get('DYNO') else False
+    # SSL_REDIRECT = True if environ.get('DYNO') else False
 
     @classmethod
     def init_app(cls, app):
