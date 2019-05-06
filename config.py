@@ -89,11 +89,30 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI =  'sqlite:///' + path.join(basedir, 'data.sqlite')
     #  environ.get('DATABASE_URL') or 
 
-class HerokuConfig(ProductionConfig):
-    # SSL_REDIRECT = True if environ.get('DYNO') else False
+    @staticmethod
+    def init_db(app, db):
+        from app.models import User
+        from datetime import datetime
+        with app.app_context():
+            print('Initing production db......')
+            u1 = User.query.filter_by(email='chison1997@gmail.com').first()
+            if u1 is None:
+                u1 = User(email='chison1997@gmail.com', name='Vương Chí Sơn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=170, weight=56)
+                db.session.add(u1)
+                db.session.commit()
+            u2 = User.query.filter_by(email='changtrajbjan@gmail.com').first()
+            if u2 is None:
+                u2 = User(email='changtrajbjan@gmail.com', name='Chàng Trai Bí Ẩn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=175, weight=65)
+                db.session.add(u2)
+                db.session.commit()
 
-    @classmethod
-    def init_app(cls, app):
+class HerokuConfig(ProductionConfig):
+    SSL_REDIRECT = True if environ.get('DYNO') else False
+    SQLALCHEMY_DATABASE_URI =  environ.get('DATABASE_URL') or 'sqlite:///' + path.join(basedir, 'data.sqlite')
+    #  environ.get('DATABASE_URL') or 
+
+    @staticmethod
+    def init_app(app):
         ProductionConfig.init_app(app)
 
         # handle reverse proxy server headers
