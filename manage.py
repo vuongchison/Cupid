@@ -53,6 +53,12 @@ def init_data():
     # app.run(threaded=True)
 
 @manager.command
+def deploy():
+    upgrade()
+    create()
+    init_data()
+
+@manager.command
 def nulo():
     from geopy.geocoders import OpenCage
     geolocator = OpenCage('d1d1fbc618ef41b89d3ebde37f53d1b2')
