@@ -84,7 +84,17 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + path.join(basedir, 'data-test.sqlite')
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + path.join(basedir, 'data.sqlite')
+    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL') or \
+        'sqlite:///' + path.join(basedir, 'data.sqlite')
+
+class HerokuConfig(ProductionConfig):
+    @classmethod
+    def init_app(cls, app):
+        ProductionConfig.init_app(app)
+
+        # handle reverse proxy server headers
+        from werkzeug.contrib.fixers import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app)
 
 config = {
     'development'   : DevelopmentConfig,
