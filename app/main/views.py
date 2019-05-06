@@ -7,6 +7,10 @@ from app import db
 from werkzeug.utils import secure_filename
 import os
 
+@main.rout('/favicon.ico', methods=['GET'])
+def favicon():
+    return redirect('/static/favicon.ico')
+
 @main.route('/', methods=['GET', 'POST'])
 @main.route('/index', methods=['GET', 'POST'])
 def index():
