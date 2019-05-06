@@ -108,7 +108,7 @@ class ProductionConfig(Config):
 
 class HerokuConfig(ProductionConfig):
     SSL_REDIRECT = True if environ.get('DYNO') else False
-    SQLALCHEMY_DATABASE_URI =  environ.get('DATABASE_URL') or 'sqlite:///' + path.join(basedir, 'data.sqlite')
+    SQLALCHEMY_DATABASE_URI =  environ.get('DATABASE_URL') or ('sqlite:///' + path.join(basedir, 'data.sqlite') )
     #  environ.get('DATABASE_URL') or 
 
     @staticmethod
