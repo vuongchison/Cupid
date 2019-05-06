@@ -1,10 +1,4 @@
 
 *.pyc
-migrations/*
 *.sqlite
 app/static/img*
-test.py
-app/static/test.css
-app/templates/test_success.html
-test.py
-app/templates/test_success.html
