@@ -22,5 +22,5 @@ flask-request-validator==2.1.0
 Flask-HTTPAuth==3.2.4
 geopy==1.19.0
 gunicorn==19.9.0
-psycopg2==2.7.3
+psycopg2
 Flask-SSLify
