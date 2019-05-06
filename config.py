@@ -91,6 +91,7 @@ class ProductionConfig(Config):
 
     @staticmethod
     def init_db(app, db):
+        Config.init_db(app, db)
         from app.models import User
         from datetime import datetime
         with app.app_context():
