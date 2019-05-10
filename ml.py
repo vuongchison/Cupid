@@ -18,14 +18,9 @@ def recommend(user_id):
                 from users, views
                 where users.id = views.user_id and views.viewer_id=%d and views.user_id not in (select users.id from users, follow where users.id = follow.followed_id and follow.follower_id=%d); 
                 """ % (user_id, user_id, user_id)
-    res = db.engine.execute(sql)
-    res = [r for r in res]
-    # print(res)
-    # return None
-    data = np.array(res)
-    # user id, height, weight, age, pro
-    # print(data)
-    # return None
+    data = db.engine.execute(sql)
+    data = [r for r in data]
+    data = np.array(data)
     X = data[:,1:4]
     y = data[:, 4]
 
@@ -40,11 +35,9 @@ def recommend(user_id):
     yhat = LR.predict(X_test)
 
     yhat_prob = LR.predict_proba(X_test)
-    # print(y_test, yhat)
 
     score = jaccard_similarity_score(y_test, yhat)
-    print(score)
-    # return None
+
     if score > 0.7:
         
         # tìm ng mà chưa từng ghé thăm
@@ -58,27 +51,11 @@ def recommend(user_id):
         users = np.array(res)
         
         yhat = LR.predict_proba(users[:, 1:])[:,1]
-        # print(yhat.shape)
-        # yhat = yhat.reshape((yhat.shape[0], 1))
-        # prob = np.zeros((yhat.shape[0], 1), dtype=float)
-        # users = np.append(res, prob, axis=1)
-        # users = users.view('i8,i8,i8,i8')
-        # users[:,4] = yhat[:,0]
         users = users.tolist()
         res = []
         for i in range(len(users)):
             res.append((users[i][0], yhat[i]))
-            # users[i].append(yhat[i])
-        # print(users[0:5], yhat[0:5])
         res = sorted(res, key=lambda i: i[1], reverse=True)
-        dtype = [('id', int), ('height', int), ('weight', int), ('age', int), ('prob', float)]
-        # res = np.append(users, yhat, axis=1)
-        # res = res.view('i8,i8,i8,i8,f8')
-        # res.sort(order=['prob'], axis=0)
-        # res = flip(res, axis=0)
-        # print(res)
-        # res.sort(order=['prob'])
-        print(res[:10])
         return res
 
 
