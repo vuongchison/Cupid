@@ -5,6 +5,7 @@ from flask_script import Manager, Shell
 from app import create_app, db
 from app.models import User, Post, Province
 from config import config
+import ml
 
 config_name = os.getenv('FLASK_CONFIG') or 'default'
 app = create_app(config_name)
@@ -13,7 +14,7 @@ manager = Manager(app)
 
 
 def make_shell_context():
-    return dict(db=db, User = User, Post=Post, Province=Province)
+    return dict(db=db, User = User, Post=Post, Province=Province, ml=ml, config_name=config_name)
 
 @manager.command
 def test():
@@ -73,4 +74,5 @@ manager.add_command('shell', Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
 if __name__ == '__main__':
+    print(config_name)
     manager.run()

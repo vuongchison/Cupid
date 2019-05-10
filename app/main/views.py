@@ -6,6 +6,7 @@ from .forms import InformationForm, PostForm, EditPostForm, ChangeAvatarForm
 from app import db
 from werkzeug.utils import secure_filename
 import os
+import ml
 
 @main.route('/favicon.ico', methods=['GET'])
 def favicon():
@@ -31,11 +32,13 @@ def index():
 
             flash('Đăng thành công.')
             return redirect(url_for('main.index'))
-
+        recommend = ml.recommend(current_user.id)[:5]
+        for i in range(len(recommend)):
+            recommend[i] = User.query.get(recommend[i][0])
         page = request.args.get('page', 1, type=int)
         pagination = current_user.followed_posts.filter(Post.author != current_user).order_by(Post.created.desc()).paginate(page, per_page=20, error_out=False)
         posts = pagination.items
-        return render_template('index.html', form=form, posts=posts, pagination=pagination)
+        return render_template('index.html', form=form, posts=posts, pagination=pagination, recommend=recommend)
     
     else:
         return render_template('intro.html')
@@ -53,6 +56,7 @@ def user_homepage():
 @login_required
 def user(uuid):
     u = User.query.filter_by(uuid=uuid).first_or_404()
+    current_user.view(u)
     page = request.args.get('page', 1, type=int)
     pagination =  u.posts.order_by(Post.created.desc()).paginate(page, per_page=20, error_out=False)
     posts = pagination.items

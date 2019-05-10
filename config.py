@@ -58,6 +58,11 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + path.join(basedir, 'data-dev.sqlite')
 
     @staticmethod
+    def init_app(app):
+        print('Development init')
+        
+
+    @staticmethod
     def init_db(app, db):
         Config.init_db(app, db)
         from app.models import User, Gender, Post

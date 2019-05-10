@@ -373,6 +373,11 @@ class User(db.Model, UserMixin):
             post.author.notify_comment_post(user=self, post=post)
         return c
 
+    def view(self, user):
+        v = View(viewer_id=self.id, user_id=user.id)
+        db.session.add(v)
+        db.session.commit()
+
     def __repr__(self):
         return '<User %d %s %s %s %s %s %s %s %s>' % (self.id, self.name, self.email, self.birthday, self.gender, self.province, self.phone_number, self.height, self.weight)
 
@@ -549,4 +554,10 @@ class Distance(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow())
 
 
+class View(db.Model):
+    __tablename__ = 'views'
 
+    id = db.Column(db.Integer, primary_key=True)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow())

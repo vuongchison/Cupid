@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
 {% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
 
 {% block title %}Trang chủ{% endblock %}
 
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="../static/imagehover.min.css">
+<link rel="stylesheet" href="../static/scss/_custom.scss">
+{% endblock %}
 
 {% block page_header %}
 <div class="container">
@@ -13,9 +19,19 @@
     </h1>
     {{ wtf.quick_form(form) }}
 </div>
+
 {% endblock %}
 
 {% block page_content %}
+<div class="container">
+    <div class="row">
+        {% for u in recommend %}
+        <div class="col-3">
+            {{ macros.user_widget(u) }}
+        </div>
+        {% endfor %}
+    </div>
+</div>   
 <div class="container">
     {% include '_posts.html' %}
 </div>
