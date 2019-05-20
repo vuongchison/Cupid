@@ -20,6 +20,8 @@ def recommend(user_id):
                 """ % (user_id, user_id, user_id)
     data = db.engine.execute(sql)
     data = [r for r in data]
+    if len(data) <= 30:
+        return list()
     data = np.array(data)
     X = data[:,1:4]
     y = data[:, 4]

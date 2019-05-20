@@ -47,11 +47,11 @@ def init_data():
     """Init data to db."""
     config[config_name].init_db(app, db)
 
-# @manager.command
-# def runserver():
-#     context = ('ssl.crt', 'ssl.key')
-#     app.run(ssl_context=context, threaded=True)
-    # app.run(threaded=True)
+@manager.command
+def runserver():
+    # context = ('ssl.crt', 'ssl.key')
+    # app.run(ssl_context=context, threaded=True)
+    app.run(threaded=True)
 
 @manager.command
 def deploy():
@@ -60,7 +60,7 @@ def deploy():
     init_data()
 
 @manager.command
-def nulo():
+def geolocation():
     from geopy.geocoders import OpenCage
     geolocator = OpenCage('d1d1fbc618ef41b89d3ebde37f53d1b2')
     for p in Province.query.all():

@@ -32,7 +32,7 @@ def index():
 
             flash('Đăng thành công.')
             return redirect(url_for('main.index'))
-        recommend = ml.recommend(current_user.id)[:5]
+        recommend = ml.recommend(current_user.id)[:4]
         for i in range(len(recommend)):
             recommend[i] = User.query.get(recommend[i][0])
         page = request.args.get('page', 1, type=int)
@@ -56,7 +56,8 @@ def user_homepage():
 @login_required
 def user(uuid):
     u = User.query.filter_by(uuid=uuid).first_or_404()
-    current_user.view(u)
+    if u != current_user:
+        current_user.view(u)
     page = request.args.get('page', 1, type=int)
     pagination =  u.posts.order_by(Post.created.desc()).paginate(page, per_page=20, error_out=False)
     posts = pagination.items
