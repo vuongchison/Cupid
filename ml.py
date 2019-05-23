@@ -7,17 +7,12 @@ from sklearn.metrics import jaccard_similarity_score
 from numpy import flip
 from app import db
 from functools import lru_cache
+from flask import current_app
 
 @lru_cache(maxsize=10)
 def recommend(user_id):
-    sql = """   select users.id, users.height, users.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', users.birthday) as int) as age, 1 as prob
-                from users, follow
-                where users.id = follow.followed_id and follow.follower_id=%d
-                union
-                select users.id, users.height, users.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', users.birthday) as int) as age, 0 as prob
-                from users, views
-                where users.id = views.user_id and views.viewer_id=%d and views.user_id not in (select users.id from users, follow where users.id = follow.followed_id and follow.follower_id=%d); 
-                """ % (user_id, user_id, user_id)
+    print(current_app.config)
+    sql = current_app.config['SQL_QUERY_GET_ALL_FOLLOW_DATA'] % (user_id, user_id, user_id)
     data = db.engine.execute(sql)
     data = [r for r in data]
     if len(data) <= 30:
@@ -44,10 +39,7 @@ def recommend(user_id):
         
         # tìm ng mà chưa từng ghé thăm
         # user id, height, weight, age
-        sql = """   select users.id, users.height, users.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', users.birthday) as int) as age
-                    from users
-                    where id != %d and gender_id = 2 and id not in (select user_id from views where viewer_id = %d);
-        """ % (user_id, user_id)
+        sql = current_app.config['SQL_QUERY_GET_ALL_STRANGER'] % (user_id, user_id)
         res = db.engine.execute(sql)
         res = [r for r in res]
         users = np.array(res)

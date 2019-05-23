@@ -46,10 +46,11 @@ def register():
 @login_required
 def confirm_email(token):
     if current_user.confirmed_email:
-        return redirect('main.index')
+        return redirect(url_for('main.index'))
     
     if current_user.confirm_email(token):
         flash('Xác nhận email thành công.')
+        current_user.notify_first_login()
     else:
         flash('Link xác nhận không chính xác hoặc đã hết hạn.')
     

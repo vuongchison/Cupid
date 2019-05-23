@@ -271,6 +271,9 @@ class User(db.Model, UserMixin):
         body = '<b>%s</b> đã bình luận vào bài đăng của bạn.' % (user.name)
         self.notify(type_id=5, image=user.avatar, link=url_for('main.post', uuid=post.uuid), body=body)
 
+    def notify_first_login(self):
+        self.notify(1, image='admin_avatar.png', link=url_for('main.edit_info'), body='Hãy cập nhật hồ sơ của bạn để mọi người biết về bạn nhiều hơn!')
+
     def message(self, receiver: 'User', body)->'Message':
         """Gửi tin nhắn. Trả về đối tượng Message."""
         m = Message(sender_id=self.id, receiver_id=receiver.id, body=body)
