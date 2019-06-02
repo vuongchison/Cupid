@@ -9,9 +9,9 @@ from app import db
 from functools import lru_cache
 from flask import current_app
 
-@lru_cache(maxsize=10)
+@lru_cache(maxsize=1)
 def recommend(user_id):
-    print(current_app.config)
+    # print(current_app.config)
     sql = current_app.config['SQL_QUERY_GET_ALL_FOLLOW_DATA'] % (user_id, user_id, user_id)
     data = db.engine.execute(sql)
     data = [r for r in data]

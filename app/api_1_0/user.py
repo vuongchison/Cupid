@@ -24,10 +24,10 @@ from geopy import distance
     Param('timestamp', JSON, str, required=False)
 )
 def coordinates(latitude, longitude, timestamp):
-    print('coordinates')
+    # print('coordinates')
     if distance.distance((latitude, longitude), current_user.coordinates).km > 0.1: 
         current_user.coordinates = (latitude, longitude)
         db.session.commit()
-        print('calculate')
+        # print('calculate')
         current_user.calculate_distances()
     return jsonify({'status': 'OK'})

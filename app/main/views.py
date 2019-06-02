@@ -32,6 +32,7 @@ def index():
 
             flash('Đăng thành công.')
             return redirect(url_for('main.index'))
+            
         recommend = ml.recommend(current_user.id)[:4]
         for i in range(len(recommend)):
             recommend[i] = User.query.get(recommend[i][0])

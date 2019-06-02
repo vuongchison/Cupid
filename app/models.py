@@ -14,7 +14,7 @@ from flask_images import resized_img_src
 from geopy import distance
 
 class Gender(db.Model):
-    __tablename__ = 'genders'
+    __tablename__ = 'Gender'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), index=True)
     note = db.Column(db.String(256))
@@ -22,25 +22,25 @@ class Gender(db.Model):
     users = db.relationship('User', backref='gender', lazy='dynamic')
 
 class Follow(db.Model):
-    __tablrname__ = 'follows'
-    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    __tablrname__ = 'Follow'
+    follower_id = db.Column(db.Integer, db.ForeignKey('User.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('User.id'), primary_key=True)
     
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Match(db.Model):
-    __tablrname__ = 'matches'
-    user1_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    user2_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    __tablrname__ = 'Match'
+    user1_id = db.Column(db.Integer, db.ForeignKey('User.id'), primary_key=True)
+    user2_id = db.Column(db.Integer, db.ForeignKey('User.id'), primary_key=True)
 
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Message(db.Model):
-    __tablename__ = 'messages'
+    __tablename__ = 'Message'
 
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    sender_id = db.Column(db.Integer, db.ForeignKey('User.id'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('User.id'))
 
     body = db.Column(db.Text)    
     read = db.Column(db.Boolean, default=False)
@@ -53,18 +53,18 @@ class Message(db.Model):
 
 
 class LastMessage(db.Model):
-    __tablrname__ = 'lastmessages'
+    __tablrname__ = 'LastMessage'
     
     id = db.Column(db.Integer, primary_key=True)
 
-    user1_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    user2_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    message_id = db.Column(db.Integer, db.ForeignKey('messages.id'))
+    user1_id = db.Column(db.Integer, db.ForeignKey('User.id'))
+    user2_id = db.Column(db.Integer, db.ForeignKey('User.id'))
+    message_id = db.Column(db.Integer, db.ForeignKey('Message.id'))
 
     message = db.relationship('Message')
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = 'User'
 
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(128), unique=True, index=True, default=lambda : uuid1().hex)
@@ -75,8 +75,8 @@ class User(db.Model, UserMixin):
     avatar = db.Column(db.String(256), default='default.png')
 
     birthday = db.Column(db.DateTime)
-    gender_id = db.Column(db.Integer, db.ForeignKey('genders.id'))
-    province_id = db.Column(db.Integer, db.ForeignKey('provinces.id'))
+    gender_id = db.Column(db.Integer, db.ForeignKey('Gender.id'))
+    province_id = db.Column(db.Integer, db.ForeignKey('Province.id'))
     phone_number = db.Column(db.String(32))
     about_me = db.Column(db.String(256))
     height = db.Column(db.Integer)
@@ -390,14 +390,14 @@ def load_user(user_id):
 
 
 class Post(db.Model):
-    __tablename__ = 'posts'
+    __tablename__ = 'Post'
 
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(128), unique=True, index=True, default=lambda : uuid1().hex)
     
     body = db.Column(db.Text)
     created = db.Column(db.DateTime, default=datetime.utcnow)
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    author_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
 
     images = db.relationship('Image', backref='post', lazy='dynamic')
 
@@ -454,7 +454,7 @@ class Post(db.Model):
         db.session.commit()
 
 class Province(db.Model):
-    __tablename__ = 'provinces'
+    __tablename__ = 'Province'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), unique=True, index=True)
@@ -478,7 +478,7 @@ class Province(db.Model):
         return '<Province %d %s>' % (self.id, self.name)
     
 class NotificationType(db.Model):
-    __tablename__ = 'notificationtypes'
+    __tablename__ = 'NotificationType'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), index=True, unique=True)
@@ -486,11 +486,11 @@ class NotificationType(db.Model):
     note = db.Column(db.Text)
 
 class Notification(db.Model):
-    __tablename__ = 'notifications'
+    __tablename__ = 'Notification'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    type_id = db.Column(db.Integer, db.ForeignKey('notificationtypes.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
+    type_id = db.Column(db.Integer, db.ForeignKey('NotificationType.id'))
     type_notification = db.relationship('NotificationType')
 
     image = db.Column(db.Text)
@@ -512,19 +512,19 @@ class Notification(db.Model):
         db.session.commit()
 
 class Image(db.Model):
-    __tablename__ = 'images'
+    __tablename__ = 'Image'
     
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(128), unique=True, index=True, default=lambda : uuid1().hex)
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), index=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('Post.id'), index=True)
 
 
 class Like(db.Model):
-    __tablename__ = 'likes'
+    __tablename__ = 'Like'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('Post.id'), index=True)
 
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -532,11 +532,11 @@ class Like(db.Model):
     post = db.relationship('Post')
 
 class Comment(db.Model):
-    __tablename__ = 'comments'
+    __tablename__ = 'Comment'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('Post.id'), index=True)
 
     body = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -548,19 +548,19 @@ class Comment(db.Model):
         return {'id': self.id, 'user': {'uuid': self.user.uuid, 'name': self.user.name, 'avatar': resized_img_src(self.user.avatar, width=48, height=48, mode='crop'), 'url': url_for('main.user', uuid=self.user.uuid)}, 'body': self.body, 'timestamp': self.timestamp.isoformat()}
 
 class Distance(db.Model):
-    __tablename__ = 'distances'
+    __tablename__ = 'Distance'
 
     id = db.Column(db.Integer, primary_key=True)
-    user1_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
-    user2_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    user1_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
+    user2_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
     distance = db.Column(db.Float, index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow())
 
 
 class View(db.Model):
-    __tablename__ = 'views'
+    __tablename__ = 'View'
 
     id = db.Column(db.Integer, primary_key=True)
-    viewer_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    viewer_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow())

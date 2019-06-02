@@ -9,7 +9,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     MAIL_USERNAME = environ.get('MAIL_USERNAME', 'chison1997@gmail.com')
-    MAIL_PASSWORD = environ.get('MAIL_PASSWORD', 'Vu0ng Ch1 S0n')
+    MAIL_PASSWORD = environ.get('MAIL_PASSWORD', 'mailpassword')
     
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
@@ -56,17 +56,17 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + path.join(basedir, 'data-dev.sqlite')
-    SQL_QUERY_GET_ALL_FOLLOW_DATA = """   select users.id, users.height, users.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', users.birthday) as int) as age, 1 as prob
-                from users, follow
-                where users.id = follow.followed_id and follow.follower_id=%d
+    SQL_QUERY_GET_ALL_FOLLOW_DATA = """   select User.id, User.height, User.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', User.birthday) as int) as age, 1 as prob
+                from User, Follow
+                where User.id = Follow.followed_id and Follow.follower_id=%d
                 union
-                select users.id, users.height, users.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', users.birthday) as int) as age, 0 as prob
-                from users, views
-                where users.id = views.user_id and views.viewer_id=%d and views.user_id not in (select users.id from users, follow where users.id = follow.followed_id and follow.follower_id=%d); 
+                select User.id, User.height, User.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', User.birthday) as int) as age, 0 as prob
+                from User, View
+                where User.id = View.user_id and View.viewer_id=%d and View.user_id not in (select User.id from User, Follow where User.id = Follow.followed_id and Follow.follower_id=%d); 
                 """
-    SQL_QUERY_GET_ALL_STRANGER = """   select users.id, users.height, users.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', users.birthday) as int) as age
-                    from users
-                    where id != %d and gender_id = 2 and id not in (select user_id from views where viewer_id = %d);
+    SQL_QUERY_GET_ALL_STRANGER = """   select User.id, User.height, User.weight, cast(strftime('%%Y.%%m%%d', 'now') - strftime('%%Y.%%m%%d', User.birthday) as int) as age
+                    from User
+                    where id != %d and gender_id = 2 and id not in (select user_id from View where viewer_id = %d);
         """
 
     @staticmethod
@@ -128,17 +128,17 @@ class HerokuConfig(ProductionConfig):
     SSL_REDIRECT = True if environ.get('DYNO') else False
     SQLALCHEMY_DATABASE_URI =  environ.get('DATABASE_URL') 
 
-    SQL_QUERY_GET_ALL_FOLLOW_DATA = """   select users.id, users.height, users.weight, (DATE_PART('year', CURRENT_DATE) - DATE_PART('year', users.birthday)) as age, 1 as prob
-                from users, follow
-                where users.id = follow.followed_id and follow.follower_id=%d
+    SQL_QUERY_GET_ALL_FOLLOW_DATA = """   select User.id, User.height, User.weight, (DATE_PART('year', CURRENT_DATE) - DATE_PART('year', User.birthday)) as age, 1 as prob
+                from User, Follow
+                where User.id = Follow.followed_id and Follow.follower_id=%d
                 union
-                select users.id, users.height, users.weight, (DATE_PART('year', CURRENT_DATE) - DATE_PART('year', users.birthday)) as age, 0 as prob
-                from users, views
-                where users.id = views.user_id and views.viewer_id=%d and views.user_id not in (select users.id from users, follow where users.id = follow.followed_id and follow.follower_id=%d); 
+                select User.id, User.height, User.weight, (DATE_PART('year', CURRENT_DATE) - DATE_PART('year', User.birthday)) as age, 0 as prob
+                from User, View
+                where User.id = View.user_id and View.viewer_id=%d and View.user_id not in (select User.id from User, Follow where User.id = Follow.followed_id and Follow.follower_id=%d); 
                 """
-    SQL_QUERY_GET_ALL_STRANGER = """   select users.id, users.height, users.weight, (DATE_PART('year', CURRENT_DATE) - DATE_PART('year', users.birthday)) as age
-                    from users
-                    where id != %d and gender_id = 2 and id not in (select user_id from views where viewer_id = %d);
+    SQL_QUERY_GET_ALL_STRANGER = """   select User.id, User.height, User.weight, (DATE_PART('year', CURRENT_DATE) - DATE_PART('year', User.birthday)) as age
+                    from User
+                    where id != %d and gender_id = 2 and id not in (select user_id from View where viewer_id = %d);
         """
         
     @staticmethod
