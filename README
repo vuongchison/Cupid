@@ -1,0 +1,27 @@
+Hướng dẫn cài đặt 
+1. Cài python3, pip3
+
+2. Cài các gói:
+    $ sudo pip3 install -r requirements.txt
+
+3. Đặt các biến môi trường cần thiết:
+    Admin email:
+        $ export MAIL_USERNAME=<Gmail username>
+        $ export MAIL_PASSWORD=<password>
+
+4. Khởi tạo database:
+    $ ./manage.py db init
+    $ ./manage.py db migrate
+    $ ./manage.py create
+    $ ./manage.py init_data
+
+5. Sinh dữ liệu người dùng ngẫu nhiên:
+    Tạo 100 người dùng, 1000 post ngẫu nhiên:
+        $ ./manage.py generate_fake
+
+
+6. Chạy server:
+    $ ./manage.py runserver
+
+7. Đăng nhập:
+    Có thể dùng tài khoản test: test@gmail.com (mật khẩu: Test12345678)
