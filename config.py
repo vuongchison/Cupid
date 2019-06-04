@@ -37,19 +37,22 @@ class Config:
         notificationsList = ['admin', 'auth', 'match', 'like', 'comment']
         
         with app.app_context():
-            i = 0
-            for province in provincesList:
-                p = Province(name=province)
-                p.coordinates = coordinatesList[i]
-                i += 1
-                db.session.add(p)
-            for genger in gendersList:
-                g = Gender(name=genger)
-                db.session.add(g)
-            for noti in notificationsList:
-                n = NotificationType(name=noti)
-                db.session.add(n)
-            db.session.commit()
+            if Province.query.filter_by(name=provincesList[0]).count() == 0:
+                i = 0
+                for province in provincesList:
+                    p = Province(name=province)
+                    p.coordinates = coordinatesList[i]
+                    i += 1
+                    db.session.add(p)
+            if Gender.query.filter_by(name=gendersList[0]).count() == 0:
+                for genger in gendersList:
+                    g = Gender(name=genger)
+                    db.session.add(g)
+            if NotificationType.query.filter_by(name=notificationsList[0]).count() == 0:
+                for noti in notificationsList:
+                    n = NotificationType(name=noti)
+                    db.session.add(n)
+                db.session.commit()
 
 
 
@@ -91,12 +94,17 @@ class DevelopmentConfig(Config):
                 u2 = User(email='changtrajbjan@gmail.com', name='Chàng Trai Bí Ẩn', password='Son01121997', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0966772910', about_me='Vương Chí Sơn đẹp trai', height=175, weight=65)
                 db.session.add(u2)
                 db.session.commit()
+            u3 = User.query.filter_by(email='test@gmail.com').first()
+            if u3 is None:
+                u3 = User(email='test@gmail.com', name='Teser', password='Test12345678', confirmed_email=True, birthday=datetime(1997, 12, 1), gender_id=1, province_id=1, phone_number='0123456789', about_me='Tài khoản test', height=175, weight=65)
+                db.session.add(u3)
+                db.session.commit()
             
-            u1.follow(u2)
-            u2.follow(u1)
+            if not u1.is_following(u2):
+                u1.follow(u2)
+            if not u2.is_following(u1):
+                u2.follow(u1)
 
-            User.generate_fake(20)
-            Post.generate_fake(500)
 
 class TestingConfig(Config):
     TESTING = True

@@ -48,6 +48,13 @@ def init_data():
     config[config_name].init_db(app, db)
 
 @manager.command
+def generate_fake():
+    """Generate fake data"""
+    User.generate_fake(100)
+    Post.generate_fake(1000)
+    
+
+@manager.command
 def runserver():
     # context = ('ssl.crt', 'ssl.key')
     # app.run(ssl_context=context, threaded=True)
