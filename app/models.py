@@ -104,11 +104,6 @@ class User(db.Model, UserMixin):
     
     match = db.relationship('Match', foreign_keys=[Match.user1_id], backref=db.backref('match', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
 
-    # def __init__(self, **kwargs):
-    #     super(User, self).__init__(**kwargs)
-        
-    #     f = Follow(follower=self, followed=self)
-    #     db.session.add(f)
 
     @property
     def password(self):
@@ -118,13 +113,21 @@ class User(db.Model, UserMixin):
     def password(self, password):
         self.password_hash = generate_password_hash(password)
 
-    def verify_password(self, password):
+    def verify_password(self, password:str) ->bool:
+        """Kiểm tra mật khẩu
+        - Trả về Tue nếu mật khẩu đúng
+        - Trả về False nếu mật khẩu sai"""
         return check_password_hash(self.password_hash, password)
 
-    def generate_confirm_email_token(self, expiration=43200):
+    def generate_confirm_email_token(self, expiration:int=43200) -> str:
+        """Sinh token xác nhận email"""
         return tokenHelper.gen({'confirm_email': self.id}, expiration)
 
-    def confirm_email(self, token):
+    def confirm_email(self, token:str) -> bool:
+        """Xác nhận email bằng token
+        - Trả về False nếu token không hợp lệ hoặc hết hạn
+        - Xác nhận email và trả về True nếu token hợp lệ """
+
         res = tokenHelper.check(token, confirm_email=self.id)
         if not res:
             return False
@@ -134,10 +137,17 @@ class User(db.Model, UserMixin):
         db.session.commit()
         return True
 
-    def generate_change_email_token(self, new_email, expiration=43200):
+    def generate_change_email_token(self, new_email:str, expiration:int=43200) -> str:
+        """Sinh token đổi email. new_email: email mới. expriration: thời gian token có hiệu lực, mặc định là 12h
+        - Trả về xâu token utf-8"""
+
         return tokenHelper.gen({'change_email': self.id, 'new_email': new_email}, expiration)
 
-    def change_email(self, token):
+    def change_email(self, token:str) -> bool:
+        """Đổi email bằng token
+        - Trả về False nếu token không hợp lệ
+        - Đổi email và trả về True nếu token hợp lệ"""
+
         res = tokenHelper.check(token, 'new_email', change_email=self.id)
         if not res:
             return False
@@ -150,11 +160,18 @@ class User(db.Model, UserMixin):
         db.session.commit()
         return True
 
-    def generate_reset_password_token(self, expiration=43200):
+    def generate_reset_password_token(self, expiration:int=43200) -> str:
+        """SInh token reset mật khẩu. expriration: thời gian token có hiệu lực, mặc định là 12h
+        - Trả về xâu token utf-8"""
+
         return tokenHelper.gen({'reset_password': self.id}, expiration)
 
     @staticmethod
-    def reset_password(token, newpassword):
+    def reset_password(token:str, new_password:str) -> bool:
+        """Đặt lại mật khẩu bằng token
+        - Trả về False nếu token không hợp lệ
+        - Đổi mật khẩu người dùng thành new_password và trả về True nếu token hợp lệ"""
+
         res = tokenHelper.check(token, 'reset_password')
         if not res:
             return False
@@ -163,18 +180,19 @@ class User(db.Model, UserMixin):
         if u is None:
             return False
 
-        u.password = newpassword
+        u.password = new_password
         db.session.add(u)
         db.session.commit()
         return True 
 
-    def generate_auth_token(self, expiration=43200):
+    def generate_auth_token(self, expiration:int=43200) -> str:
         """Sinh token dùng cho xác thực api"""
+
         return tokenHelper.gen({'id': self.id}, expiration=expiration)
 
     @staticmethod
-    def verify_auth_token(token):
-        """Kiểm tra token xem có hợp lệ không.
+    def verify_auth_token(token:str) -> User:
+        """Kiểm tra api token xem có hợp lệ không.
             - Nếu hợp lệ, trả về user tương ứng
             - Nếu không, trả về None"""
 
@@ -186,6 +204,8 @@ class User(db.Model, UserMixin):
 
     @staticmethod
     def generate_fake(count=10):
+        """Sinh người dùng với dữ liệu ngẫu nhiên"""
+
         import forgery_py
         from random import randint, normalvariate
 
@@ -205,6 +225,8 @@ class User(db.Model, UserMixin):
         db.session.commit()
                     
     def ping(self):
+        """Cập nhật thời gian hoạt động của user"""
+
         self.active = datetime.utcnow()
         db.session.add(self)
         db.session.commit()
@@ -214,67 +236,95 @@ class User(db.Model, UserMixin):
         now = datetime.utcnow()
         return (now - self.active).total_seconds()/60 < 5
 
-    # @hybrid_property
-    # def is_active(self):
-    #     return (datetime.utcnow() - self.active).total_seconds()/60 < 5
 
-    def follow(self, user):
+    def follow(self, user:'User'):
+        """Theo dõi user"""
+
+        #Nếu chưa theo dõi user
         if not self.is_following(user):
+            #Theo dõi
             f = Follow(follower=self, followed=user)
             db.session.add(f)
+        
+        #Nếu 2 người theo dõi nhau
         if self.is_followed_by(user):
+            #2 người match với nhau
             m1 = Match(user1_id=self.id, user2_id=user.id)
             m2 = Match(user1_id=user.id, user2_id=self.id)
             db.session.add_all([m1, m2])
+            #Thông báo 2 người đã được match
             self.notify_match(match_with=user)
             user.notify_match(match_with=self)
 
         db.session.commit()
 
-    def unfollow(self, user):
+    def unfollow(self, user:'User'):
+        """Hủy theo dõi user"""
+
         f = self.followed.filter_by(followed_id=user.id).first()
+        #Nếu đang theo dõi user
         if f:
+            #Hủy theo dõi
             db.session.delete(f)
+            #Nếu 2 người match với nhau
             if self.is_followed_by(user):
+                #Xóa match
                 m = Match.query.filter( (Match.user1_id == self.id) | (Match.user1_id ==  user.id) ).delete()
 
             db.session.commit()
     
-    def is_following(self, user):
+    def is_following(self, user:'User') -> bool:
+        """Có đang theo dõi user hay không"""
         return self.followed.filter_by(followed_id=user.id).first() is not None
     
-    def is_followed_by(self, user):
+    def is_followed_by(self, user:'User') -> bool:
+        """Có đang được user theo dõi hay không"""
         return self.followers.filter_by(follower_id=user.id).first() is not None
 
     @property
-    def followed_posts(self):
+    def followed_posts(self) -> 'query':
+        """"Trả về câu truy vấn các post của những người mà người dùng theo dõi"""
         return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id) 
 
-    def is_match_with(self, user):
+    def is_match_with(self, user:'User') -> bool:
+        """2 người có match với nhau hay không"""
         return self.match.filter_by(user2_id=user.id).first() is not None
 
-    def notify(self, type_id, image=None, link=None, body=None):
+    def notify(self, type_id:int, image:str=None, link:str=None, body:str=None):
+        """Gửi thông báo đến người dùng.
+        type_id: loại thông báo. 1: admin, 2: auth, 3: match, 4: like, 5: comment
+        image: đường dẫn đến hình ảnh minh họa thông báo
+        link: đường dẫn khi người dùng click vào thông báo
+        body: nội dung thông báo, đoạn html"""
+
         n = Notification(user_id=self.id, type_id=type_id, image=image, link=link, body=body)
         self.new_noti += 1
         db.session.add(n)
         db.session.commit()
 
-    def notify_match(self, match_with):
+    def notify_match(self, match_with:'User'):
+        """Thông báo người dùng match với 1 người dùng"""
+
         body = 'Chúc mừng, bạn và <b>%s</b> đã match với nhau, bạn có thể nhắn tin cho %s ấy.' % (match_with.name or 'người ấy', 'bạn' if match_with.gender is None else 'anh' if match_with.gender.name == 'Nam' else 'cô')
         self.notify(type_id=3, image=match_with.avatar, link=url_for('main.user', uuid=match_with.uuid), body=body)
     
-    def notify_like_post(self, user, post):
+    def notify_like_post(self, user:'User', post:'Post'):
+        """Thông báo đến người dùng có 1 người đã like post"""
+
         body = '<b>%s</b> đã thích bài đăng của bạn.' % (user.name)
         self.notify(type_id=4, image=user.avatar, link=url_for('main.post', uuid=post.uuid), body=body)
 
     def notify_comment_post(self, user, post):
+        """Thông báo đến người dùng có 1 người đã bình luận post"""
         body = '<b>%s</b> đã bình luận vào bài đăng của bạn.' % (user.name)
         self.notify(type_id=5, image=user.avatar, link=url_for('main.post', uuid=post.uuid), body=body)
 
     def notify_first_login(self):
+        """Gửi thông báo khi người dùng login lần đầu tiên"""
+
         self.notify(1, image='admin_avatar.png', link=url_for('main.edit_info'), body='Hãy cập nhật hồ sơ của bạn để mọi người biết về bạn nhiều hơn!')
 
-    def message(self, receiver: 'User', body)->'Message':
+    def message(self, receiver:User, body:str)->Message:
         """Gửi tin nhắn. Trả về đối tượng Message."""
         m = Message(sender_id=self.id, receiver_id=receiver.id, body=body)
         db.session.add(m)
@@ -294,11 +344,11 @@ class User(db.Model, UserMixin):
         return m
 
     @property
-    def last_messages(self):
-        """Các tin nhắn cuối cùng với mọi người. Kết quả tả về dưới dạng 1 câuu truy vấn."""
+    def last_messages(self) -> 'query':
+        """Các tin nhắn cuối cùng với mọi người. Kết quả trả về dưới dạng 1 câu truy vấn."""
         return LastMessage.query.filter_by(user1_id=self.id).join(Message, Message.id == LastMessage.message_id)
 
-    def get_latest_messages(self, user):
+    def get_latest_messages(self, user:User) -> 'query':
         """Trả về câu truy vấn lấy các tin nhắn với user, sắp xếp từ tin nhắn mới đến cũ."""
         return Message.query.filter( (Message.sender_id == self.id) | (Message.receiver_id == self.id) ).order_by(Message.timestamp.desc())
 
@@ -315,29 +365,37 @@ class User(db.Model, UserMixin):
             return None
 
     @coordinates.setter
-    def coordinates(self, coordinates: '(latitude, longitude)'):
+    def coordinates(self, coordinates:'(latitude, longitude)'):
         """Thiết đặt tọa độ địa lý cho user.
         - coordinates: 1 bộ gồm kinh độ và vĩ độ (latitude, longitude)"""
         self.latitude, self.longitude = coordinates
 
 
-    def distance(self, user):
+    def distance(self, user:User)->float:
+        """Trả về khoảng cách giữa 2 người (tính bằng km)"""
         return distance.distance(self.coordinates, user.coordinates).km
 
     def calculate_distances(self):
+        """Tính toán khoảng cách của người dùng đến tất cả người dùng khác giới"""
+        #Tìm tất cả người dùng khác giới
         for u in User.query.filter(User.gender_id != self.gender_id).all():
+            #Tính khoảng cách giữa 2 người
             d = self.distance(u)
+
             if (u.id < self.id):
                 user1, user2 = u, self
             else:
                 user2, user1 = u, self
-
+            #Tìm bản ghi khỏang cách giữa 2 người trong Distance
             dis = Distance.query.filter_by(user1_id=user1.id, user2_id=user2.id).first()
-
+            #Nếu đã có
             if dis:
+                #Cập nhật lạu khoảng cách và timestamp
                 dis.d = d
                 dis.timestamp = datetime.utcnow()
+            #Chưa có
             else:
+                #Thêm bản ghi mới
                 dis = Distance(user1_id=user1.id, user2_id=user2.id, distance=d)
                 db.session.add(dis)
         
@@ -345,12 +403,17 @@ class User(db.Model, UserMixin):
 
 
 
-    def like(self, post):
+    def like(self, post:Post):
+        """Thích 1 bài post"""
         l = Like.query.filter_by(user_id=self.id, post_id=post.id).first()
+        #Nếu đã like post
         if l is not None:
+            #unlike
             post.count_likes -= 1
             db.session.delete(l)
+        #Chưa like post
         else:
+            #Like post
             post.count_likes += 1
             l = Like(user_id=self.id, post_id=post.id)
             db.session.add(l)
@@ -360,23 +423,25 @@ class User(db.Model, UserMixin):
                 post.author.notify_like_post(user=self, post=post)
         db.session.commit()
     
-    def is_like(self, post):
+    def is_like(self, post:Post) -> bool:
+        """Người dùng đã like post hay chưa"""
         return Like.query.filter_by(user_id=self.id, post_id=post.id).first() is not None
 
 
-    def comment(self, post, body):
-        """Bình luận vào bài post với nội dung body."""
+    def comment(self, post:Post, body:str):
+        """Bình luận vào bài post với nội dung body"""
         c = Comment(user_id=self.id, post_id=post.id, body=body)
         post.count_comments += 1
         db.session.add(c)
         db.session.commit()
 
-        # gửi thông báo đến chủ bài post
+        # Gửi thông báo đến chủ bài post
         if self != post.author:
             post.author.notify_comment_post(user=self, post=post)
         return c
 
-    def view(self, user):
+    def view(self, user:User):
+        """Đánh dấu đã ghe thăm người dùng user"""
         v = View(viewer_id=self.id, user_id=user.id)
         db.session.add(v)
         db.session.commit()
@@ -409,6 +474,8 @@ class Post(db.Model):
 
     @staticmethod
     def generate_fake(count=10):
+        """Sinh dữu liệu post ngẫu nhiên"""
+
         import forgery_py
         from random import randint, normalvariate
 
@@ -431,22 +498,30 @@ class Post(db.Model):
         return Comment.query.filter_by(post_id=self.id).order_by(Comment.timestamp.desc())
 
     def delete_images(self):
+        """Xóa tất cả ảnh của post"""
+
         for i in self.images:
             remove('app/static/img/post/' + i.uuid + '.png')
             db.session.delete(i)
         db.session.commit()
 
     def delete_likes(self):
+        """Xóa tất cả like của post"""
+
         Like.query.filter_by(post_id=self.id).delete()
         self.count_likes = 0
         db.session.commit()
 
     def delete_comments(self):
+        """Xóa tất cả comment của post"""
+
         Comment.query.filter_by(post_id=self.id).delete()
         self.count_comments = 0
         db.session.commit()
 
     def delete(self):
+        """Xóa post"""
+
         self.delete_images()
         self.delete_comments()
         self.delete_likes()
@@ -460,7 +535,7 @@ class Province(db.Model):
     name = db.Column(db.String(32), unique=True, index=True)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-    users = db.relationship('User', backref='province', lazy='dynamic')
+    users = db.relationship(User, backref='province', lazy='dynamic')
     
     @property
     def coordinates(self)->'(latitude, longitude)':
@@ -500,12 +575,6 @@ class Notification(db.Model):
     read = db.Column(db.Boolean, default=False, index=True)
 
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-
-    # def __init__(self, **kwargs):
-    #     super(Notification, self).__init__(**kwargs)
-    #     db.session.add(self)
-    #     db.session.commit()
-    #     self.user.new_noti += 1
 
     def mark_read(self):
         self.read = True
