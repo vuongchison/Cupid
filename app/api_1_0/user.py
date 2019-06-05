@@ -24,10 +24,16 @@ from geopy import distance
     Param('timestamp', JSON, str, required=False)
 )
 def coordinates(latitude, longitude, timestamp):
-    # print('coordinates')
+    """"Lấy tọa độ người dùng
+    latitude: vĩ độ
+    longtitude: kinh độ
+    timestamp: thời gian lấy tọa độ""""
+
+    #Nếu tọa độ mới cách tọa độ cũ hơn 100m
     if distance.distance((latitude, longitude), current_user.coordinates).km > 0.1: 
+        #Cập nhật tọa độ mới
         current_user.coordinates = (latitude, longitude)
         db.session.commit()
-        # print('calculate')
+        #Tính khoảng cách của người dùng đến các người dùn khác
         current_user.calculate_distances()
     return jsonify({'status': 'OK'})

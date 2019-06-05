@@ -20,7 +20,7 @@ import dateutil.parser
     Param('timestamp', JSON, str, required=True),
 )
 def get_news_noti(timestamp):
-    # print(current_user.notifications.all())
+    """Lấy các thông báo mới kể từ thời điểm timestamp"""
     if (current_user.new_noti == 0):
         res = []
     else:

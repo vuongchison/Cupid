@@ -5,6 +5,8 @@ from app.models import Gender, User, Post, Province
 
 
 class InformationForm(FlaskForm):
+    """Chỉnh sửa thông tin cá nhân"""
+
     birthday = DateField('Ngày sinh', format='%d/%m/%Y', validators=[Optional()])
     gender = SelectField('Giới tính', coerce=int)
     province = SelectField('Tỉnh thành', coerce=int)
@@ -23,16 +25,22 @@ class InformationForm(FlaskForm):
         self.weight.choices = [(0, "--Không hiển thị--")] + [(v, v) for v in range(100, 29, -1)]
         
 class PostForm(FlaskForm):
+    """Đăng bài"""
+
     body = TextAreaField('Bài đăng mới', validators=[DataRequired()])
     image = FileField('Chọn ảnh')
     submit = SubmitField('Đăng')
 
 class EditPostForm(FlaskForm):
+    """Chỉnh sửa post"""
+
     body = TextAreaField('', validators=[DataRequired()])
     submit = SubmitField('Lưu thay đổi')
 
 
 class ChangeAvatarForm(FlaskForm):
+    """Chọn avatar từ thiết bị"""
+
     newavatar = FileField('Chọn avatar mới')
     submit = SubmitField('Tải lên')
     cancel = SubmitField('Hủy bỏ')

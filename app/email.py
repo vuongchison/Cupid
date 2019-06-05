@@ -3,7 +3,12 @@ from app import mail
 from flask import current_app, render_template
 from threading import Thread
 
-def send_email(subject, to, template, **kwargs):
+def send_email(subject:str, to:list, template:str, **kwargs:dict):
+    """Gửi email đến 1 danh sách email.
+    subject: chủ đề email
+    to: danh sách người nhận
+    template: mẫu email
+    **kwargs: danh sách các tham số"""
     app = current_app._get_current_object()
     msg = Message(subject, sender='Admin <%s>'%app.config.get('MAIL_USERNAME'), recipients=[to])
     msg.body = render_template(template + '.txt', **kwargs)

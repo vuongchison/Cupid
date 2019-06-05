@@ -161,7 +161,7 @@ class User(db.Model, UserMixin):
         return True
 
     def generate_reset_password_token(self, expiration:int=43200) -> str:
-        """SInh token reset mật khẩu. expriration: thời gian token có hiệu lực, mặc định là 12h
+        """Sinh token reset mật khẩu. expriration: thời gian token có hiệu lực, mặc định là 12h
         - Trả về xâu token utf-8"""
 
         return tokenHelper.gen({'reset_password': self.id}, expiration)
@@ -204,7 +204,11 @@ class User(db.Model, UserMixin):
 
     @staticmethod
     def generate_fake(count=10):
-        """Sinh người dùng với dữ liệu ngẫu nhiên"""
+        """Sinh người dùng với dữ liệu ngẫu nhiên
+        count: số lượng người dùng cần sinh
+        Tuổi từ 17-26
+        Cân nặng theo phân phối chuẩn, mu=58, sigma=4
+        Chiều cao theo phân phối chuẩn, mu=164, sigma=7.6"""
 
         import forgery_py
         from random import randint, normalvariate
