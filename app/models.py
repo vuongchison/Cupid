@@ -12,6 +12,7 @@ from flask import jsonify
 from os import remove
 from flask_images import resized_img_src
 from geopy import distance
+from operator import itemgetter
 
 class Gender(db.Model):
     __tablename__ = 'Gender'
@@ -83,7 +84,7 @@ class User(db.Model, UserMixin):
     weight = db.Column(db.Integer)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-
+    cell_id = db.Column(db.Integer, db.ForeignKey('Cell.id'))
 
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     
@@ -104,6 +105,8 @@ class User(db.Model, UserMixin):
     
     match = db.relationship('Match', foreign_keys=[Match.user1_id], backref=db.backref('match', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
 
+    def todict(self):
+        return {'uuid': self.uuid, 'name': self.name, 'avatar': resized_img_src(self.avatar, width=48, height=48, mode='crop'), 'url': url_for('main.user', uuid=self.uuid)}
 
     @property
     def password(self):
@@ -191,7 +194,7 @@ class User(db.Model, UserMixin):
         return tokenHelper.gen({'id': self.id}, expiration=expiration)
 
     @staticmethod
-    def verify_auth_token(token:str) -> User:
+    def verify_auth_token(token:str) -> 'User':
         """Kiểm tra api token xem có hợp lệ không.
             - Nếu hợp lệ, trả về user tương ứng
             - Nếu không, trả về None"""
@@ -290,6 +293,18 @@ class User(db.Model, UserMixin):
         """"Trả về câu truy vấn các post của những người mà người dùng theo dõi"""
         return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id) 
 
+    def get_followed_posts(self, count, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        bucket = Post.get_bucket(time)
+        listPost = []
+        for b in range(bucket, -1, -1):
+            listPost += Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Post.bucket==b,Post.created < time, Follow.follower_id == self.id).order_by(Post.created.desc()).all()
+            if len(listPost) >= count:
+                break
+        return listPost[:count]
+
+
     def is_match_with(self, user:'User') -> bool:
         """2 người có match với nhau hay không"""
         return self.match.filter_by(user2_id=user.id).first() is not None
@@ -328,7 +343,7 @@ class User(db.Model, UserMixin):
 
         self.notify(1, image='admin_avatar.png', link=url_for('main.edit_info'), body='Hãy cập nhật hồ sơ của bạn để mọi người biết về bạn nhiều hơn!')
 
-    def message(self, receiver:User, body:str)->Message:
+    def message(self, receiver:'User', body:str)->'Message':
         """Gửi tin nhắn. Trả về đối tượng Message."""
         m = Message(sender_id=self.id, receiver_id=receiver.id, body=body)
         db.session.add(m)
@@ -352,7 +367,7 @@ class User(db.Model, UserMixin):
         """Các tin nhắn cuối cùng với mọi người. Kết quả trả về dưới dạng 1 câu truy vấn."""
         return LastMessage.query.filter_by(user1_id=self.id).join(Message, Message.id == LastMessage.message_id)
 
-    def get_latest_messages(self, user:User) -> 'query':
+    def get_latest_messages(self, user:'User') -> 'query':
         """Trả về câu truy vấn lấy các tin nhắn với user, sắp xếp từ tin nhắn mới đến cũ."""
         return Message.query.filter( (Message.sender_id == self.id) | (Message.receiver_id == self.id) ).order_by(Message.timestamp.desc())
 
@@ -374,8 +389,10 @@ class User(db.Model, UserMixin):
         - coordinates: 1 bộ gồm kinh độ và vĩ độ (latitude, longitude)"""
         self.latitude, self.longitude = coordinates
 
+        Cell.add_user(self)
 
-    def distance(self, user:User)->float:
+
+    def distance(self, user:'User')->float:
         """Trả về khoảng cách giữa 2 người (tính bằng km)"""
         return distance.distance(self.coordinates, user.coordinates).km
 
@@ -405,9 +422,42 @@ class User(db.Model, UserMixin):
         
         db.session.commit()
 
+    def get_near_people(self, d:'km', count:int):
+        userCell = self.cell
+
+        allCellD = CellDistance.query.filter((CellDistance.cell1_id==userCell.id) | (CellDistance.cell2_id==userCell.id), CellDistance.distance >= (int(d)//111-1)*157, CellDistance.distance <= (int(d)//111+1)*157).order_by(CellDistance.distance.asc()).all()
+        allCell = []
+        if d <= 157:
+            allCell.append(userCell)
+    
+        for cellD in allCellD:
+            if cellD.cell1_id == userCell.id:
+                allCell.append(Cell.query.get(cellD.cell2_id))
+            else:
+                allCell.append(Cell.query.get(cellD.cell1_id))
+        
+        if len(allCell) == 0:
+            return []
+
+        peopleList=[]
+        
+        for c in allCell:
+            for u in c.users:
+                if u != self:
+                    dis = self.distance(u)
+                    if dis >= d:
+                        peopleList.append((u, dis))
+            if len(peopleList) >= count:
+                        break
+        
+        if len(peopleList) < count:
+            peopleList+=self.get_near_people(d + 111, count - len(peopleList))
+
+        return sorted(peopleList, key=itemgetter(1))[:count]
+        
 
 
-    def like(self, post:Post):
+    def like(self, post:'Post'):
         """Thích 1 bài post"""
         l = Like.query.filter_by(user_id=self.id, post_id=post.id).first()
         #Nếu đã like post
@@ -427,12 +477,12 @@ class User(db.Model, UserMixin):
                 post.author.notify_like_post(user=self, post=post)
         db.session.commit()
     
-    def is_like(self, post:Post) -> bool:
+    def is_like(self, post:'Post') -> bool:
         """Người dùng đã like post hay chưa"""
         return Like.query.filter_by(user_id=self.id, post_id=post.id).first() is not None
 
 
-    def comment(self, post:Post, body:str):
+    def comment(self, post:'Post', body:str):
         """Bình luận vào bài post với nội dung body"""
         c = Comment(user_id=self.id, post_id=post.id, body=body)
         post.count_comments += 1
@@ -444,7 +494,7 @@ class User(db.Model, UserMixin):
             post.author.notify_comment_post(user=self, post=post)
         return c
 
-    def view(self, user:User):
+    def view(self, user:'User'):
         """Đánh dấu đã ghe thăm người dùng user"""
         v = View(viewer_id=self.id, user_id=user.id)
         db.session.add(v)
@@ -467,7 +517,7 @@ class Post(db.Model):
     body = db.Column(db.Text)
     created = db.Column(db.DateTime, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
-
+    bucket = db.Column(db.Integer, default=lambda : Post.get_bucket(datetime.now()), index=True)
     images = db.relationship('Image', backref='post', lazy='dynamic')
 
     likes = db.relationship('Like')
@@ -478,7 +528,7 @@ class Post(db.Model):
 
     @staticmethod
     def generate_fake(count=10):
-        """Sinh dữu liệu post ngẫu nhiên"""
+        """Sinh dữ liệu post ngẫu nhiên"""
 
         import forgery_py
         from random import randint, normalvariate
@@ -496,6 +546,9 @@ class Post(db.Model):
                 db.session.rollback()
         
         db.session.commit()
+
+    def todict(self):
+        return {'uuid': self.uuid, 'author': self.author.todict(), 'body': self.body, 'created': self.created.isoformat(), 'images': [ url_for('images.crop', filename=i.uuid + '.png', width=1000, height=1000, quality=90) for i in self.images], 'count_likes': self.count_likes, 'count_comments': self.count_comments}
 
     def get_latest_comments(self):
         """Trả về câu truy vấn lấy tất cả comment của post, sắp xếp từ mới đến cũ."""
@@ -531,6 +584,16 @@ class Post(db.Model):
         self.delete_likes()
         db.session.delete(self)
         db.session.commit()
+
+    @staticmethod
+    def update_bucket():
+        for p in Post.query.all():
+            p.bucket = Post.get_bucket(p.created)
+        db.session.commit()
+
+    @staticmethod
+    def get_bucket(timestamp):
+        return int((timestamp - datetime(2019, 6, 1, 0, 0, 0)).total_seconds() // (3*24*60*60))
 
 class Province(db.Model):
     __tablename__ = 'Province'
@@ -584,6 +647,21 @@ class Notification(db.Model):
         self.read = True
         db.session.commit()
 
+class PostNoti(db.Model):
+    __tablename__ = 'PostNoti'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('Post.id'))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class ReadPostNoti(db.Model):
+    __tablename__ = 'ReadPostNoti'
+
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), primary_key=True)
+    postnoti_id = db.Column(db.Integer, db.ForeignKey('PostNoti.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)     
+
 class Image(db.Model):
     __tablename__ = 'Image'
     
@@ -618,7 +696,7 @@ class Comment(db.Model):
     post = db.relationship('Post')
 
     def todict(self):
-        return {'id': self.id, 'user': {'uuid': self.user.uuid, 'name': self.user.name, 'avatar': resized_img_src(self.user.avatar, width=48, height=48, mode='crop'), 'url': url_for('main.user', uuid=self.user.uuid)}, 'body': self.body, 'timestamp': self.timestamp.isoformat()}
+        return {'id': self.id, 'user': self.user.todict(), 'body': self.body, 'timestamp': self.timestamp.isoformat()}
 
 class Distance(db.Model):
     __tablename__ = 'Distance'
@@ -637,3 +715,67 @@ class View(db.Model):
     viewer_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow())
+
+class Cell(db.Model):
+    __tablename__ = 'Cell'
+
+    id = db.Column(db.Integer, primary_key=True)
+    latitude = db.Column(db.Float, index=True)
+    longitude = db.Column(db.Float, index=True)
+    count = db.Column(db.Integer, default=0)
+
+    users = db.relationship(User, backref='cell', lazy='dynamic')
+
+    @property
+    def coordinates(self):
+        return (self.latitude, self.longitude)
+
+    def calculate_distances(self):
+        allCell = Cell.query.filter(Cell.id != self.id).all()
+        for cell in allCell:
+            if cell.id < self.id:
+                cd = CellDistance(cell1_id=cell.id, cell2_id=self.id, distance=distance.distance(self.coordinates, cell.coordinates).km)
+                db.session.add(cd)
+        db.session.commit()
+
+    @staticmethod
+    def update_count():
+        for c in Cell.query.all():
+            c.count = c.users.count()
+        db.session.commit()
+
+    @staticmethod
+    def add_user(user):
+        lat, long = user.coordinates
+        lat = int(lat)
+        long = int(long)
+        c = Cell.query.filter_by(latitude=lat, longitude=long).first()
+        if c is None:
+            c = Cell(latitude=lat, longitude=long, count=0)
+            c.calculate_distances()
+            db.session.add(c)
+
+        uc = user.cell
+        if uc is not None:
+            if uc.cell_id != c.id:
+                uc.cell.count -= 1
+                uc.cell_id = c.id
+                c.count += 1
+        else:
+            user.cell_id = c.id
+        db.session.commit()
+
+# class UserCell(db.Model):
+#     __tablename__ = 'UserCell'
+
+#     user_id = db.Column(db.Integer, db.ForeignKey('User.id'), index=True, primary_key=True)
+#     cell_id = db.Column(db.Integer, db.ForeignKey('Cell.id'), index=True, primary_key=True)
+
+#     cell = db.relationship('Cell')
+
+class CellDistance(db.Model):
+    __tablename__ = 'CellDistance'
+
+    cell1_id = db.Column(db.Integer, db.ForeignKey('Cell.id'), primary_key=True)
+    cell2_id = db.Column(db.Integer, db.ForeignKey('Cell.id'), primary_key=True)
+    distance = db.Column(db.Float, index=True)

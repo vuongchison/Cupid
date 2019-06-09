@@ -3,7 +3,7 @@ import os
 from flask_migrate import Migrate, MigrateCommand, upgrade, migrate, init
 from flask_script import Manager, Shell
 from app import create_app, db
-from app.models import User, Post, Province
+from app.models import User, Post, Province, Cell
 from config import config
 import ml
 
@@ -14,7 +14,7 @@ manager = Manager(app)
 
 
 def make_shell_context():
-    return dict(db=db, User = User, Post=Post, Province=Province, ml=ml, config_name=config_name)
+    return dict(db=db, User = User, Post=Post, Province=Province, ml=ml, config_name=config_name, Cell=Cell)
 
 @manager.command
 def test():

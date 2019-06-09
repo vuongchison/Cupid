@@ -98,3 +98,17 @@ def comment_get_olds(uuid:str, count:int, last_id:int):
     res = [c.todict() for c in res]
     return jsonify({'comments': res})
 
+@api.route('/post/get_followed_posts', methods=['POST'])
+@validate_params(
+    Param('count', JSON, int, required=True),
+    Param('last_uuid', JSON, str, required=False)
+)
+def get_followed_posts(count, last_uuid):
+    timestamp = None
+    if last_uuid:
+        p = Post.query.filter_by(uuid=last_uuid).first()
+        if p is None:
+            return page_not_found('last_uuid không hợp lệ')
+        timestamp = p.created
+    posts = current_user.get_followed_posts(count, timestamp)
+    return jsonify({'posts': [p.todict() for p in posts] })

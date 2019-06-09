@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app
 from . import main
-from app.models import User, Post, Notification, Message, Image, Distance
+from app.models import User, Post, Notification, Message, Image, Distance, PostNoti, Cell
 from flask_login import login_required, current_user
 from .forms import InformationForm, PostForm, EditPostForm, ChangeAvatarForm
 from app import db
@@ -29,7 +29,9 @@ def index():
                 f = form.image.data
                 filename = secure_filename(str(i.uuid) + '.png')
                 f.save(os.path.join(current_app.config.get('BASEDIR'), 'app/static/img/post', filename))
-
+            pn = PostNoti(user_id=current_user.id, post_id=p.id)
+            db.session.add(pn)
+            db.session.commit()
             flash('Đăng thành công.')
             return redirect(url_for('main.index'))
             
@@ -71,7 +73,11 @@ def edit_info():
     if form.validate_on_submit():
         current_user.birthday = form.birthday.data
         current_user.gender_id = form.gender.data if form.gender.data != 0 else None
-        current_user.province_id = form.province.data if form.province.data != 0 else None
+        if form.province.data != 0:
+            current_user.province_id = form.province.data
+            Cell.add_user(current_user)
+        else:
+            current_user.province_id = None
         current_user.phone_number = form.phone_number.data
         current_user.about_me = form.about_me.data
         current_user.height = form.height.data if form.height.data != 0 else None
@@ -133,8 +139,10 @@ def delete_post(uuid):
 @login_required
 def people():
     page = request.args.get('page', 1, type=int)
-    pagination = db.session.query(User, Distance).filter(User.gender_id != current_user.gender_id).filter((User.id == Distance.user1_id) | (User.id == Distance.user2_id)).order_by(Distance.distance.asc()).paginate(page, per_page=20, error_out=False)
-    # pagination =  User.query.filter(User.gender_id != current_user.gender_id).paginate(page, per_page=20, error_out=False)
+    q = db.session.query(User, Distance).filter(User.gender_id != current_user.gender_id).filter((User.id == Distance.user1_id) | (User.id == Distance.user2_id)).order_by(Distance.distance.asc())
+    print(q.count())
+    pagination = q.paginate(page, per_page=20, error_out=False)
+  
     people = pagination.items
     
     return render_template('people.html', people=people, pagination=pagination)
