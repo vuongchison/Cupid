@@ -593,6 +593,7 @@ class Post(db.Model):
 
     @staticmethod
     def get_bucket(timestamp):
+        #Gom các post trong 3 ngày thành 1 bucket
         return int((timestamp - datetime(2019, 6, 1, 0, 0, 0)).total_seconds() // (3*24*60*60))
 
 class Province(db.Model):
@@ -757,9 +758,9 @@ class Cell(db.Model):
 
         uc = user.cell
         if uc is not None:
-            if uc.cell_id != c.id:
-                uc.cell.count -= 1
-                uc.cell_id = c.id
+            if uc.id != c.id:
+                uc.count -= 1
+                user.cell_id = c.id
                 c.count += 1
         else:
             user.cell_id = c.id
