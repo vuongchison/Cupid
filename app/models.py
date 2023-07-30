@@ -3,7 +3,7 @@ from . import login_manager
 from flask import current_app, url_for
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import URLSafeTimedSerializer as Serializer
 from . import tokenHelper 
 from uuid import uuid1
 import enum

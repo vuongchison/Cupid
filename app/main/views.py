@@ -39,7 +39,7 @@ def index():
         for i in range(len(recommend)):
             recommend[i] = User.query.get(recommend[i][0])
         page = request.args.get('page', 1, type=int)
-        pagination = current_user.followed_posts.filter(Post.author != current_user).order_by(Post.created.desc()).paginate(page, per_page=20, error_out=False)
+        pagination = current_user.followed_posts.filter(Post.author != current_user).order_by(Post.created.desc()).paginate(page=page, per_page=20, error_out=False)
         posts = pagination.items
         return render_template('index.html', form=form, posts=posts, pagination=pagination, recommend=recommend)
     
@@ -62,7 +62,7 @@ def user(uuid):
     if u != current_user:
         current_user.view(u)
     page = request.args.get('page', 1, type=int)
-    pagination =  u.posts.order_by(Post.created.desc()).paginate(page, per_page=20, error_out=False)
+    pagination =  u.posts.order_by(Post.created.desc()).paginate(page=page, per_page=20, error_out=False)
     posts = pagination.items
     return render_template('user.html', user=u, posts=posts, pagination=pagination)
 
@@ -141,7 +141,7 @@ def people():
     page = request.args.get('page', 1, type=int)
     q = db.session.query(User, Distance).filter(User.gender_id != current_user.gender_id).filter((User.id == Distance.user1_id) | (User.id == Distance.user2_id)).order_by(Distance.distance.asc())
     print(q.count())
-    pagination = q.paginate(page, per_page=20, error_out=False)
+    pagination = q.paginate(page=page, per_page=20, error_out=False)
   
     people = pagination.items
     
@@ -190,7 +190,7 @@ def notification():
     current_user.new_noti = 0
     db.session.commit()
     page = request.args.get('page', 1, type=int)
-    pagination = current_user.notifications.order_by(Notification.timestamp.desc()).paginate(page, per_page=20, error_out=False)
+    pagination = current_user.notifications.order_by(Notification.timestamp.desc()).paginate(page=page, per_page=20, error_out=False)
     notifications = pagination.items
     return render_template('notification.html', notifications=notifications, pagination=pagination)
 
